@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跨境物流工具 - 头程计算 & 货件追踪</title>
+<style>
+:root {
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --text2: #6b7280;
+  --primary: #2563eb;
+  --primary-h: #1d4ed8;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --border: #e5e7eb;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,.12);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --sidebar-w: 200px;
+  --content-max: 1400px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+}
+
+/* Login Screen */
+#login-screen {
+  display: flex; align-items: center; justify-content: center; min-height: 100vh;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #3b82f6 100%);
+}
+.login-card { background: #fff; border-radius: 16px; padding: 40px 36px; width: 400px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,.3); text-align: center; }
+.login-card .logo { font-size: 48px; margin-bottom: 8px; }
+.login-card h1 { font-size: 22px; font-weight: 700; color: #1e3a5f; margin-bottom: 4px; }
+.login-card .sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; }
+.login-card label { display: block; text-align: left; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+.login-card input[type="password"] { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; transition: border .2s; }
+.login-card input:focus { border-color: var(--primary); }
+.login-card .btn { width: 100%; padding: 12px; margin-top: 20px; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 600; cursor: pointer; background: var(--primary); color: #fff; transition: all .2s; }
+.login-card .btn:hover { background: var(--primary-h); transform: translateY(-1px); }
+.login-card .hint { margin-top: 16px; font-size: 12px; color: #9ca3af; }
+
+/* App Layout */
+#app-screen { display: none; height: 100vh; }
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: linear-gradient(180deg, #1e3a5f 0%, #1a2744 100%); color: #fff; padding: 24px 0; display: flex; flex-direction: column; z-index: 100; }
+.sidebar .brand { padding: 0 16px 24px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 16px; }
+.sidebar .brand .icon { font-size: 28px; }
+.sidebar .brand h2 { font-size: 14px; font-weight: 600; margin-top: 4px; opacity: .9; }
+.sidebar nav { flex: 1; padding: 0 8px; }
+.sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,.65); text-decoration: none; font-size: 13px; font-weight: 500; margin-bottom: 4px; transition: all .2s; cursor: pointer; }
+.sidebar nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.sidebar nav a.active { background: rgba(255,255,255,.15); color: #fff; font-weight: 600; }
+.sidebar .user-area { padding: 16px; border-top: 1px solid rgba(255,255,255,.1); }
+.sidebar .user-area .lock-btn { width: 100%; padding: 8px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; background: transparent; color: rgba(255,255,255,.7); cursor: pointer; font-size: 12px; transition: all .2s; }
+.sidebar .user-area .lock-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+.main { margin-left: var(--sidebar-w); padding: 28px 40px; min-height: 100vh; max-width: calc(var(--content-max) + var(--sidebar-w)); }
+
+/* View Containers */
+.view { display: none; }
+.view.active { display: block; }
+
+/* Cards & Sections */
+.section { background: var(--card); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+.section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1e3a5f; display: flex; align-items: center; gap: 8px; }
+.section h3 .ico { font-size: 20px; }
+
+/* Forms */
+.form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; align-items: flex-end; }
+.form-group { flex: 1; min-width: 140px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; outline: none; transition: border .2s; background: #fafbfc; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); background: #fff; }
+.form-group select { cursor: pointer; }
+.form-hint { font-size: 11px; color: #9ca3af; margin-top: 2px; line-height: 1.3; }
+.form-hint span { color: #6366f1; }
+.form-warn { color: #ef4444 !important; font-weight: 600; }
+
+/* Buttons */
+.btn { padding: 9px 18px; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-h); transform: translateY(-1px); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { opacity: .9; }
+.btn-warning { background: var(--warning); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 4px; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: #f8fafc; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; border-bottom: 2px solid var(--border); white-space: nowrap; }
+tbody td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+tbody tr { transition: background .15s; }
+tbody tr:hover { background: #f8fafc; }
+.table-wrap { overflow-x: auto; }
+
+/* Badges */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-blue { background: #dbeafe; color: #1d4ed8; }
+.badge-green { background: #d1fae5; color: #059669; }
+.badge-yellow { background: #fef3c7; color: #d97706; }
+.badge-red { background: #fee2e2; color: #dc2626; }
+.badge-gray { background: #f3f4f6; color: #6b7280; }
+
+/* Result Box */
+.result-box { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #93c5fd; border-radius: var(--radius); padding: 20px 24px; margin-top: 16px; display: flex; gap: 32px; flex-wrap: wrap; }
+.result-item { text-align: center; }
+.result-item .val { font-size: 28px; font-weight: 800; color: #1e3a5f; }
+.result-item .val.small { font-size: 20px; }
+.result-item .lbl { font-size: 12px; color: #6b7280; margin-top: 2px; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 12px; width: 1050px; max-width: 94vw; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-lg); position: relative; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 10; border-radius: 12px 12px 0 0; }
+.modal-header h3 { font-size: 18px; color: #1e3a5f; margin: 0; }
+.modal-close { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f3f4f6; color: #6b7280; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.modal-close:hover { background: #e5e7eb; color: #1a1a2e; }
+.modal-body { padding: 24px 28px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 28px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: #fff; border-radius: 0 0 12px 12px; }
+
+/* Unit conversion hints */
+.unit-convert { font-size: 10px; color: #6366f1; margin-top: 1px; line-height: 1.2; }
+
+/* ETD/ETA dual line */
+.etd-eta-cell { line-height: 1.5; }
+.etd-eta-cell .etd { color: #2563eb; font-weight: 500; }
+.etd-eta-cell .eta { color: #059669; font-weight: 500; }
+
+/* Status colors */
+.status-preparing { color: #d97706; }
+.status-in_transit { color: #2563eb; }
+.status-arrived { color: #059669; }
+.status-signed { color: #6b7280; }
+.status-delayed { color: #dc2626; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 20px; color: #9ca3af; }
+.empty-state .ico { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { margin-bottom: 16px; }
+
+/* Toast */
+.toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 500; z-index: 999; opacity: 0; transform: translateY(-20px); transition: all .3s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast-success { background: var(--success); }
+.toast-error { background: var(--danger); }
+.toast-info { background: var(--primary); }
+
+/* Tabs */
+.sub-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.sub-tab { padding: 6px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--text2); transition: all .2s; font-weight: 500; }
+.sub-tab:hover { border-color: var(--primary); color: var(--primary); }
+.sub-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Tracking link */
+.tracking-link { color: var(--primary); text-decoration: none; font-weight: 600; font-size: 12px; }
+.tracking-link:hover { text-decoration: underline; }
+
+/* Toolbar */
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+
+/* Tags */
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: #f3f4f6; color: #374151; }
+.tag .tag-del { cursor: pointer; opacity: .4; font-size: 14px; line-height: 1; }
+.tag .tag-del:hover { opacity: 1; color: var(--danger); }
+
+/* Product line in shipment */
+.product-line { display: flex; gap: 8px; align-items: flex-end; padding: 8px 0; border-bottom: 1px solid #f3f4f6; flex-wrap: wrap; }
+.product-line .btn-remove { padding: 9px 10px; color: var(--danger); background: none; border: 1.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 16px; transition: all .2s; }
+.product-line .btn-remove:hover { border-color: var(--danger); background: #fef2f2; }
+.box-calc-info { font-size: 11px; padding-top: 2px; }
+.box-calc-info .ok { color: #059669; }
+.box-calc-info .warn { color: #ef4444; font-weight: 600; }
+.quick-add-link { font-size: 12px; color: var(--primary); cursor: pointer; margin-top: 4px; display: inline-block; }
+.quick-add-link:hover { text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { width: 56px; }
+  .sidebar .brand h2, .sidebar nav a span:not(.nav-icon), .sidebar .user-area .lock-btn span { display: none; }
+  .sidebar .user-area .lock-btn { padding: 8px 4px; font-size: 16px; }
+  .sidebar nav a { justify-content: center; padding: 12px; }
+  .main { margin-left: 56px; padding: 16px; }
+  .form-group { min-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="logo">📦</div>
+    <h1 id="login-title">跨境物流工具</h1>
+    <p class="sub" id="login-sub">头程计算 · 货件追踪</p>
+    <label for="pwd-input">输入密码</label>
+    <input type="password" id="pwd-input" placeholder="请输入访问密码" autocomplete="off">
+    <button class="btn" id="login-btn" onclick="App.login()">🔓 解锁</button>
+    <p class="hint" id="login-hint"></p>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app-screen">
+  <aside class="sidebar">
+    <div class="brand"><div class="icon">📦</div><h2>物流工具箱</h2></div>
+    <nav>
+      <a class="active" data-view="calculator" onclick="App.nav('calculator')"><span class="nav-icon">🧮</span> <span>头程计算器</span></a>
+      <a data-view="tracker" onclick="App.nav('tracker')"><span class="nav-icon">📋</span> <span>货件追踪器</span></a>
+      <a data-view="products" onclick="App.nav('products')"><span class="nav-icon">📦</span> <span>产品管理</span></a>
+      <a data-view="warehouses" onclick="App.nav('warehouses')"><span class="nav-icon">🏭</span> <span>平台仓管理</span></a>
+    </nav>
+    <div class="user-area"><button class="lock-btn" onclick="App.lock()">🔒 <span>锁定应用</span></button></div>
+  </aside>
+  <div class="main" id="main-content"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal-content"></div></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== CRYPTO & SECURITY ====================
+const Crypto = {
+  async deriveKey(password, salt) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  },
+  async encrypt(plaintext, password) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await this.deriveKey(password, 'shipping-tool-salt-v1');
+    const enc = new TextEncoder();
+    const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(plaintext));
+    const combined = new Uint8Array(iv.length + ciphertext.byteLength);
+    combined.set(iv); combined.set(new Uint8Array(ciphertext), iv.length);
+    return btoa(String.fromCharCode(...combined));
+  },
+  async decrypt(cipherB64, password) {
+    try {
+      const combined = Uint8Array.from(atob(cipherB64), c => c.charCodeAt(0));
+      const iv = combined.slice(0, 12);
+      const ciphertext = combined.slice(12);
+      const key = await this.deriveKey(password, 'shipping-tool-salt-v1');
+      const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+      return new TextDecoder().decode(dec);
+    } catch { return null; }
+  },
+  async hash(str) {
+    const enc = new TextEncoder();
+    const hash = await crypto.subtle.digest('SHA-256', enc.encode(str));
+    return btoa(String.fromCharCode(...new Uint8Array(hash)));
+  }
+};
+
+// ==================== DATA MANAGER ====================
+const DB = {
+  _key: 'shipping_tool_enc', _pwd: null,
+  _data: {
+    products: [],
+    warehouses: [
+      { id: 'amz-fba', name: 'Amazon FBA' },
+      { id: 'tt-fbt', name: 'TikTok-FBT' },
+      { id: 'sp-fbs', name: 'Shopee-FBS' },
+      { id: 'ovs-default', name: '海外仓' }
+    ],
+    shipments: [],
+    settings: { shipmentCounter: 0, lastShipmentDate: '' }
+  },
+  setPassword(pwd) { this._pwd = pwd; },
+  getPassword() { return this._pwd; },
+  async save() { if (!this._pwd) return; const json = JSON.stringify(this._data); const enc = await Crypto.encrypt(json, this._pwd); localStorage.setItem(this._key, enc); },
+  async load() { if (!this._pwd) return false; const enc = localStorage.getItem(this._key); if (!enc) return true; const json = await Crypto.decrypt(enc, this._pwd); if (json === null) return false; this._data = JSON.parse(json); return true; },
+  getProducts() { return this._data.products; },
+  addProduct(p) { p.id = 'p_' + Date.now(); this._data.products.push(p); this.save(); return p; },
+  updateProduct(id, updates) { const idx = this._data.products.findIndex(p => p.id === id); if (idx >= 0) { Object.assign(this._data.products[idx], updates); this.save(); return true; } return false; },
+  deleteProduct(id) { this._data.products = this._data.products.filter(p => p.id !== id); this.save(); },
+  getProduct(id) { return this._data.products.find(p => p.id === id); },
+  getWarehouses() { return this._data.warehouses; },
+  addWarehouse(w) { w.id = 'wh_' + Date.now(); this._data.warehouses.push(w); this.save(); return w; },
+  updateWarehouse(id, updates) { const idx = this._data.warehouses.findIndex(w => w.id === id); if (idx >= 0) { Object.assign(this._data.warehouses[idx], updates); this.save(); return true; } return false; },
+  deleteWarehouse(id) { if (['amz-fba','tt-fbt','sp-fbs','ovs-default'].includes(id)) return false; this._data.warehouses = this._data.warehouses.filter(w => w.id !== id); this.save(); return true; },
+  getShipments(filter = 'all') {
+    const all = this._data.shipments;
+    if (filter === 'all') return [...all].reverse();
+    if (filter === 'active') return all.filter(s => !s.isSigned).reverse();
+    if (filter === 'signed') return all.filter(s => s.isSigned).reverse();
+    if (filter === 'delayed') { const now = new Date(); now.setHours(0,0,0,0); return all.filter(s => !s.isSigned && s.etaDate && new Date(s.etaDate) < now).reverse(); }
+    return [...all].reverse();
+  },
+  getShipment(id) { return this._data.shipments.find(s => s.id === id); },
+  addShipment(s) { s.id = 's_' + Date.now(); s.createdAt = new Date().toISOString(); this._data.shipments.push(s); this.save(); return s; },
+  updateShipment(id, updates) { const idx = this._data.shipments.findIndex(s => s.id === id); if (idx >= 0) { Object.assign(this._data.shipments[idx], updates); this.save(); return true; } return false; },
+  deleteShipment(id) { this._data.shipments = this._data.shipments.filter(s => s.id !== id); this.save(); },
+  generateShipmentNo(country, warehouseId) {
+    const now = new Date(); const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const wh = this._data.warehouses.find(w => w.id === warehouseId);
+    const whCode = wh ? wh.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 3).toUpperCase() : 'UNK';
+    const countryCode = (country || 'CN').slice(0, 2).toUpperCase();
+    if (this._data.settings.lastShipmentDate !== dateStr) { this._data.settings.lastShipmentDate = dateStr; this._data.settings.shipmentCounter = 0; }
+    this._data.settings.shipmentCounter++;
+    return `${countryCode}-${whCode}-${dateStr.slice(2)}-${String(this._data.settings.shipmentCounter).padStart(3, '0')}`;
+  }
+};
+
+// ==================== UNIT CONVERTER ====================
+const Convert = {
+  cmToInch(cm) { return cm * 0.393701; },
+  cmToFeetInch(cm) { const totalIn = this.cmToInch(cm); const ft = Math.floor(totalIn / 12); const inch = (totalIn % 12).toFixed(1); return ft > 0 ? `${ft}ft ${inch}in` : `${inch}in`; },
+  kgToLbs(kg) { return kg * 2.20462; },
+  kgToOz(kg) { return kg * 35.274; },
+};
+
+// ==================== UI HELPERS ====================
+const UI = {
+  toast(msg, type = 'info') { const el = document.getElementById('toast'); el.textContent = msg; el.className = `toast toast-${type} show`; clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2500); },
+  showModal(title, contentHtml, onSave) {
+    const overlay = document.getElementById('modal-overlay');
+    const content = document.getElementById('modal-content');
+    content.innerHTML = `
+      <div class="modal-header">
+        <h3>${title}</h3>
+        <button class="modal-close" onclick="UI.closeModal()" title="关闭">✕</button>
+      </div>
+      <div class="modal-body">${contentHtml}</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="UI.closeModal()">取消</button>
+        ${onSave ? '<button class="btn btn-primary" id="modal-save-btn" onclick="UI._saveModal()">💾 保存</button>' : ''}
+      </div>`;
+    overlay.classList.add('show');
+    UI._modalOnSave = onSave;
+    setTimeout(() => { const first = content.querySelector('input:not([readonly]), select'); if (first) first.focus(); }, 100);
+  },
+  closeModal() { document.getElementById('modal-overlay').classList.remove('show'); UI._modalOnSave = null; },
+  _saveModal() { if (UI._modalOnSave) { UI._modalOnSave(); UI.closeModal(); } },
+  confirm(msg) { return confirm(msg); },
+  formatDate(d) { if (!d) return '-'; return new Date(d).toISOString().slice(0, 10); },
+  formatCNY(n) { return '¥' + Number(n).toFixed(2); },
+  getShipmentStatus(s) {
+    if (s.isSigned) return { text: '已签收', cls: 'badge-green' };
+    if (s.status === 'delayed') return { text: '已延误', cls: 'badge-red' };
+    if (s.status === 'arrived') return { text: '已到港', cls: 'badge-blue' };
+    return { text: '运输中', cls: 'badge-yellow' };
+  }
+};
+
+// ==================== APP CONTROLLER ====================
+const App = {
+  currentView: 'calculator', autoLockTimer: null,
+  async init() { document.getElementById('pwd-input').addEventListener('keydown', e => { if (e.key === 'Enter') App.login(); }); this.checkAuth(); },
+  checkAuth() {
+    const hash = localStorage.getItem('shipping_tool_hash');
+    if (!hash) {
+      document.getElementById('login-title').textContent = '🔐 初次设置';
+      document.getElementById('login-sub').textContent = '请设置一个密码来保护你的数据';
+      document.getElementById('login-btn').textContent = '🔐 设置密码';
+      document.getElementById('login-hint').textContent = '请记住密码，丢失后数据无法恢复';
+      App._isSetup = true;
+    } else { App._isSetup = false; }
+    App._storedHash = hash;
+  },
+  async login() {
+    const pwd = document.getElementById('pwd-input').value.trim();
+    if (!pwd) { UI.toast('请输入密码', 'error'); return; }
+    if (App._isSetup) {
+      const hash = await Crypto.hash(pwd);
+      localStorage.setItem('shipping_tool_hash', hash);
+      DB.setPassword(pwd); await DB.save();
+      App.enterApp(); UI.toast('密码设置成功，数据已加密保护 ✅', 'success');
+    } else {
+      const hash = await Crypto.hash(pwd);
+      if (hash !== App._storedHash) { UI.toast('密码错误，请重试', 'error'); document.getElementById('pwd-input').value = ''; return; }
+      DB.setPassword(pwd);
+      const ok = await DB.load();
+      if (!ok) { UI.toast('数据解密失败，密码可能已更改', 'error'); document.getElementById('pwd-input').value = ''; return; }
+      App.enterApp();
+    }
+    document.getElementById('pwd-input').value = '';
+  },
+  enterApp() { document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-screen').style.display = 'flex'; App.nav('calculator'); App.startAutoLock(); },
+  lock() { document.getElementById('app-screen').style.display = 'none'; document.getElementById('login-screen').style.display = 'flex'; DB._pwd = null; App.checkAuth(); if (App.autoLockTimer) { clearTimeout(App.autoLockTimer); App.autoLockTimer = null; } document.getElementById('pwd-input').focus(); },
+  startAutoLock() { if (App.autoLockTimer) clearTimeout(App.autoLockTimer); App.autoLockTimer = setTimeout(() => { App.lock(); UI.toast('应用已自动锁定（30分钟无操作）', 'info'); }, 30 * 60 * 1000); },
+  resetAutoLock() { if (App.autoLockTimer) clearTimeout(App.autoLockTimer); App.startAutoLock(); },
+  nav(view) {
+    document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+    const link = document.querySelector(`[data-view="${view}"]`); if (link) link.classList.add('active');
+    App.currentView = view; App.resetAutoLock();
+    document.getElementById('main-content').scrollTop = 0;
+    switch(view) { case 'calculator': Calculator.render(); break; case 'tracker': Tracker.render(); break; case 'products': Products.render(); break; case 'warehouses': Warehouses.render(); break; }
+  }
+};
+
+// ==================== CALCULATOR ====================
+const Calculator = {
+  render() {
+    const products = DB.getProducts();
+    const main = document.getElementById('main-content');
+    if (products.length === 0) {
+      main.innerHTML = `<div class="view active"><h2 style="margin-bottom:20px;">🧮 头程均价计算器</h2><div class="section"><div class="empty-state"><div class="ico">📦</div><p>还没有添加产品，请先在「产品管理」中添加产品信息</p><button class="btn btn-primary" onclick="App.nav('products')">📦 去添加产品</button></div></div></div>`;
+      return;
+    }
+    const productOptions = products.map(p => `<option value="${p.id}">${p.name}${p.sku ? ' (' + p.sku + ')' : ''} - ${p.unitsPerBox || '?'}件/箱</option>`).join('');
+    main.innerHTML = `
+      <div class="view active">
+        <h2 style="margin-bottom:20px;">🧮 头程均价计算器</h2>
+        <div class="section">
+          <h3><span class="ico">📋</span> 选择产品 & 输入参数</h3>
+          <div class="form-row">
+            <div class="form-group" style="min-width:240px;"><label>选择产品</label><select id="calc-product" onchange="Calculator.onProductChange()"><option value="">-- 请选择产品 --</option>${productOptions}</select></div>
+            <div class="form-group" style="max-width:130px;"><label>出货箱数</label><input type="number" id="calc-boxes" value="1" min="1" onchange="Calculator.calc()" oninput="Calculator.calc()"></div>
+          </div>
+          <div id="calc-box-specs" style="display:none;">
+            <div class="form-row">
+              <div class="form-group" style="max-width:110px;"><label>箱长(cm)</label><input id="calc-bl" readonly><div class="unit-convert" id="calc-bl-conv"></div></div>
+              <div class="form-group" style="max-width:110px;"><label>箱宽(cm)</label><input id="calc-bw" readonly><div class="unit-convert" id="calc-bw-conv"></div></div>
+              <div class="form-group" style="max-width:110px;"><label>箱高(cm)</label><input id="calc-bh" readonly><div class="unit-convert" id="calc-bh-conv"></div></div>
+              <div class="form-group" style="max-width:110px;"><label>箱重(kg)</label><input id="calc-bwt" readonly><div class="unit-convert" id="calc-bwt-conv"></div></div>
+              <div class="form-group" style="max-width:100px;"><label>件/箱</label><input id="calc-upb" readonly></div>
+              <div class="form-group" style="max-width:120px;"><label>CBM/箱</label><input id="calc-cbm" readonly></div>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:8px;">
+            <div class="form-group" style="max-width:160px;"><label>头程单价</label><input type="number" id="calc-rate" placeholder="0.00" step="0.01" min="0" onchange="Calculator.calc()" oninput="Calculator.calc()"></div>
+            <div class="form-group" style="max-width:140px;"><label>计费方式</label><select id="calc-unit" onchange="Calculator.calc()"><option value="KG">按重量 (¥/KG)</option><option value="CBM">按体积 (¥/CBM)</option></select></div>
+          </div>
+        </div>
+        <div id="calc-result"></div>
+      </div>`;
+    Calculator.calc();
+  },
+  onProductChange() {
+    const pid = document.getElementById('calc-product').value;
+    const specs = document.getElementById('calc-box-specs');
+    if (!pid) { specs.style.display = 'none'; document.getElementById('calc-result').innerHTML = ''; return; }
+    const p = DB.getProduct(pid); if (!p) return;
+    specs.style.display = 'block';
+    document.getElementById('calc-bl').value = p.boxLength || '';
+    document.getElementById('calc-bl-conv').textContent = p.boxLength ? `≈ ${Convert.cmToFeetInch(p.boxLength)}` : '';
+    document.getElementById('calc-bw').value = p.boxWidth || '';
+    document.getElementById('calc-bw-conv').textContent = p.boxWidth ? `≈ ${Convert.cmToFeetInch(p.boxWidth)}` : '';
+    document.getElementById('calc-bh').value = p.boxHeight || '';
+    document.getElementById('calc-bh-conv').textContent = p.boxHeight ? `≈ ${Convert.cmToFeetInch(p.boxHeight)}` : '';
+    document.getElementById('calc-bwt').value = p.boxWeight || '';
+    document.getElementById('calc-bwt-conv').textContent = p.boxWeight ? `≈ ${Convert.kgToLbs(p.boxWeight).toFixed(2)} lbs` : '';
+    document.getElementById('calc-upb').value = p.unitsPerBox || '';
+    const cbm = ((p.boxLength||0) * (p.boxWidth||0) * (p.boxHeight||0) / 1e6).toFixed(4);
+    document.getElementById('calc-cbm').value = cbm;
+    Calculator.calc();
+  },
+  calc() {
+    const pid = document.getElementById('calc-product')?.value;
+    const resultDiv = document.getElementById('calc-result');
+    if (!pid || !resultDiv) return;
+    const p = DB.getProduct(pid); if (!p) { resultDiv.innerHTML = ''; return; }
+    const boxes = parseInt(document.getElementById('calc-boxes')?.value) || 0;
+    const rate = parseFloat(document.getElementById('calc-rate')?.value) || 0;
+    const unit = document.getElementById('calc-unit')?.value || 'KG';
+    if (boxes <= 0 || rate <= 0) { resultDiv.innerHTML = ''; return; }
+    const cbmPerBox = (p.boxLength || 0) * (p.boxWidth || 0) * (p.boxHeight || 0) / 1e6;
+    const totalWeight = boxes * (p.boxWeight || 0);
+    const totalCBM = boxes * cbmPerBox;
+    const chargeBasis = unit === 'KG' ? totalWeight : totalCBM;
+    const totalCost = chargeBasis * rate;
+    const totalUnits = boxes * (p.unitsPerBox || 1);
+    const avgPerUnit = totalUnits > 0 ? totalCost / totalUnits : 0;
+    resultDiv.innerHTML = `
+      <div class="result-box">
+        <div class="result-item"><div class="val">${UI.formatCNY(totalCost)}</div><div class="lbl">总头程费用</div></div>
+        <div class="result-item"><div class="val">${UI.formatCNY(avgPerUnit)}</div><div class="lbl">单件头程均价</div></div>
+        <div class="result-item"><div class="val small">${totalWeight.toFixed(2)} kg / ${totalCBM.toFixed(4)} CBM</div><div class="lbl">总重量 / 总体积</div></div>
+        <div class="result-item"><div class="val small">${totalUnits} 件</div><div class="lbl">总出货件数 (${boxes}箱 × ${p.unitsPerBox || '?'}件)</div></div>
+        <div class="result-item" style="min-width:100%;font-size:12px;color:#6b7280;margin-top:8px;text-align:left;">计费方式: ${unit === 'KG' ? '按重量' : '按体积'} | 单价: ${UI.formatCNY(rate)}/${unit === 'KG' ? 'KG' : 'CBM'} | 产品: ${p.name}</div>
+      </div>`;
+  }
+};
+
+// ==================== PRODUCTS MANAGEMENT ====================
+const Products = {
+  render() {
+    const products = DB.getProducts();
+    const main = document.getElementById('main-content');
+    let rows = '';
+    if (products.length === 0) {
+      rows = `<tr><td colspan="9"><div class="empty-state"><div class="ico">📦</div><p>还没有添加产品</p></div></td></tr>`;
+    } else {
+      rows = products.map(p => {
+        const cbm = ((p.boxLength||0)*(p.boxWidth||0)*(p.boxHeight||0)/1e6).toFixed(4);
+        return `<tr>
+          <td><strong>${this.esc(p.name)}</strong></td><td>${this.esc(p.sku || '-')}</td>
+          <td>${p.boxLength||'-'}×${p.boxWidth||'-'}×${p.boxHeight||'-'} cm</td>
+          <td>${p.boxWeight||'-'} kg</td><td>${p.unitsPerBox||'-'} 件</td>
+          <td>${cbm} CBM</td><td>${(p.unitWeight||'-')} kg</td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-ghost btn-xs" onclick="Products.edit('${p.id}')" title="编辑">✏️</button>
+            <button class="btn btn-ghost btn-xs" style="color:#6366f1" onclick="Products.duplicate('${p.id}')" title="复制">📋</button>
+            <button class="btn btn-ghost btn-xs" style="color:var(--danger)" onclick="Products.remove('${p.id}')" title="删除">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    main.innerHTML = `
+      <div class="view active">
+        <div class="toolbar"><h2>📦 产品管理</h2><button class="btn btn-primary" onclick="Products.add()">➕ 添加产品</button></div>
+        <div class="section"><div class="table-wrap"><table>
+          <thead><tr><th>产品名称</th><th>SKU</th><th>箱尺寸(L×W×H)</th><th>箱重</th><th>件/箱</th><th>CBM/箱</th><th>单件重</th><th>操作</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div></div>
+      </div>`;
+  },
+  esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; },
+
+  _productFormHtml(p) {
+    return `
+      <div class="form-row">
+        <div class="form-group" style="min-width:200px;"><label>产品名称 *</label><input id="pf-name" value="${this.esc(p.name || '')}" placeholder="如: 染发剂套装"></div>
+        <div class="form-group" style="max-width:150px;"><label>SKU</label><input id="pf-sku" value="${this.esc(p.sku || '')}" placeholder="可选"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="max-width:140px;"><label>箱长 (cm) *</label><input type="number" id="pf-bl" step="0.1" value="${p.boxLength||''}" placeholder="40" oninput="Products._updateConv('pf-bl','pf-bl-conv','cm')"><div class="unit-convert" id="pf-bl-conv">${p.boxLength ? '≈ '+Convert.cmToFeetInch(p.boxLength) : ''}</div></div>
+        <div class="form-group" style="max-width:140px;"><label>箱宽 (cm) *</label><input type="number" id="pf-bw" step="0.1" value="${p.boxWidth||''}" placeholder="30" oninput="Products._updateConv('pf-bw','pf-bw-conv','cm')"><div class="unit-convert" id="pf-bw-conv">${p.boxWidth ? '≈ '+Convert.cmToFeetInch(p.boxWidth) : ''}</div></div>
+        <div class="form-group" style="max-width:140px;"><label>箱高 (cm) *</label><input type="number" id="pf-bh" step="0.1" value="${p.boxHeight||''}" placeholder="25" oninput="Products._updateConv('pf-bh','pf-bh-conv','cm')"><div class="unit-convert" id="pf-bh-conv">${p.boxHeight ? '≈ '+Convert.cmToFeetInch(p.boxHeight) : ''}</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="max-width:140px;"><label>箱重 (kg) *</label><input type="number" id="pf-bwt" step="0.01" value="${p.boxWeight||''}" placeholder="12" oninput="Products._updateConv('pf-bwt','pf-bwt-conv','kg')"><div class="unit-convert" id="pf-bwt-conv">${p.boxWeight ? '≈ '+Convert.kgToLbs(p.boxWeight).toFixed(2)+' lbs / '+Convert.kgToOz(p.boxWeight).toFixed(1)+' oz' : ''}</div></div>
+        <div class="form-group" style="max-width:140px;"><label>每箱件数 *</label><input type="number" id="pf-upb" value="${p.unitsPerBox||''}" placeholder="24"></div>
+        <div class="form-group" style="max-width:140px;"><label>单件重量 (kg)</label><input type="number" id="pf-uwt" step="0.01" value="${p.unitWeight||''}" placeholder="0.5"></div>
+      </div>`;
+  },
+
+  _updateConv(inputId, convId, type) {
+    const el = document.getElementById(inputId);
+    const conv = document.getElementById(convId);
+    if (!el || !conv) return;
+    const val = parseFloat(el.value);
+    if (!val || isNaN(val)) { conv.textContent = ''; return; }
+    if (type === 'cm') conv.textContent = '≈ ' + Convert.cmToFeetInch(val);
+    else conv.textContent = '≈ ' + Convert.kgToLbs(val).toFixed(2) + ' lbs / ' + Convert.kgToOz(val).toFixed(1) + ' oz';
+  },
+
+  _readProductForm() {
+    return {
+      name: document.getElementById('pf-name').value.trim(),
+      sku: document.getElementById('pf-sku').value.trim(),
+      boxLength: parseFloat(document.getElementById('pf-bl').value) || 0,
+      boxWidth: parseFloat(document.getElementById('pf-bw').value) || 0,
+      boxHeight: parseFloat(document.getElementById('pf-bh').value) || 0,
+      boxWeight: parseFloat(document.getElementById('pf-bwt').value) || 0,
+      unitsPerBox: parseInt(document.getElementById('pf-upb').value) || 0,
+      unitWeight: parseFloat(document.getElementById('pf-uwt').value) || 0
+    };
+  },
+
+  add(quickSaveCallback) {
+    UI.showModal('添加产品', this._productFormHtml({}), () => {
+      const d = Products._readProductForm();
+      if (!d.name) { UI.toast('请输入产品名称', 'error'); return; }
+      const np = DB.addProduct(d);
+      Products.render();
+      UI.toast('产品添加成功 ✅', 'success');
+      if (quickSaveCallback) quickSaveCallback(np);
+    });
+  },
+
+  edit(id) {
+    const p = DB.getProduct(id); if (!p) return;
+    UI.showModal('编辑产品', this._productFormHtml(p), () => {
+      const d = Products._readProductForm();
+      if (!d.name) { UI.toast('请输入产品名称', 'error'); return; }
+      DB.updateProduct(id, d);
+      Products.render();
+      UI.toast('产品更新成功 ✅', 'success');
+    });
+  },
+
+  duplicate(id) {
+    const p = DB.getProduct(id); if (!p) return;
+    const copy = { ...p };
+    copy.name = copy.name + ' (副本)';
+    DB.addProduct(copy);
+    Products.render();
+    UI.toast('产品已复制 ✅', 'success');
+  },
+
+  remove(id) {
+    const p = DB.getProduct(id);
+    if (!UI.confirm(`确定删除产品「${p.name}」吗？此操作不可撤销。`)) return;
+    DB.deleteProduct(id);
+    Products.render();
+    UI.toast('产品已删除', 'info');
+  }
+};
+
+// ==================== WAREHOUSES MANAGEMENT ====================
+const Warehouses = {
+  render() {
+    const warehouses = DB.getWarehouses();
+    const main = document.getElementById('main-content');
+    const tags = warehouses.map(w => {
+      const isDefault = ['amz-fba','tt-fbt','sp-fbs','ovs-default'].includes(w.id);
+      return `<span class="tag">🏭 ${this.esc(w.name)}${isDefault ? '' : `<span class="tag-del" onclick="Warehouses.remove('${w.id}')">×</span>`}</span>`;
+    }).join('');
+    main.innerHTML = `
+      <div class="view active">
+        <h2 style="margin-bottom:20px;">🏭 平台仓管理</h2>
+        <div class="section"><h3>当前平台仓</h3><div class="tag-list">${tags || '<span style="color:#9ca3af;font-size:13px;">暂无仓库</span>'}</div><p style="font-size:12px;color:#9ca3af;margin-top:8px;">默认仓库不可删除，自定义仓库可自由增删</p></div>
+        <div class="section"><h3>➕ 添加自定义仓库</h3><div class="form-row"><div class="form-group" style="max-width:300px;"><label>仓库名称</label><input id="wh-name" placeholder="如: 独立站海外仓、TEMU-FBT"></div><div class="form-group" style="align-self:flex-end;"><button class="btn btn-primary" onclick="Warehouses.addCustom()">添加</button></div></div></div>
+      </div>`;
+    document.getElementById('wh-name')?.addEventListener('keydown', e => { if (e.key === 'Enter') Warehouses.addCustom(); });
+  },
+  esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; },
+  addCustom() { const el = document.getElementById('wh-name'); if (!el) return; const name = el.value.trim(); if (!name) { UI.toast('请输入仓库名称', 'error'); return; } DB.addWarehouse({ name }); el.value = ''; Warehouses.render(); UI.toast('仓库添加成功 ✅', 'success'); },
+  remove(id) { if (!UI.confirm('确定删除此仓库吗？')) return; if (!DB.deleteWarehouse(id)) { UI.toast('默认仓库不可删除', 'error'); return; } Warehouses.render(); UI.toast('仓库已删除', 'info'); }
+};
+
+// ==================== TRACKER ====================
+const Tracker = {
+  filter: 'all',
+
+  render() {
+    const shipments = DB.getShipments(this.filter);
+    const warehouses = DB.getWarehouses();
+    const main = document.getElementById('main-content');
+    let rows = '';
+    if (shipments.length === 0) {
+      rows = `<tr><td colspan="9"><div class="empty-state"><div class="ico">📋</div><p>暂无货件记录，点击"创建货件"开始</p></div></td></tr>`;
+    } else {
+      rows = shipments.map(s => {
+        const wh = warehouses.find(w => w.id === s.warehouseId);
+        const st = UI.getShipmentStatus(s);
+        const trackingLink = s.trackingNo && s.carrier ? this.getTrackingUrl(s.carrier, s.trackingNo) : '';
+        return `<tr>
+          <td><strong style="font-size:12px;font-family:monospace;">${this.esc(s.shipmentNo)}</strong></td>
+          <td>${this.esc(s.country || '-')}</td>
+          <td>${this.esc(wh?.name || s.warehouseId)}</td>
+          <td>${s.items?.map(i => { const p = DB.getProduct(i.productId); return `${p?.name || '?'} ×${i.quantity}`; }).join('<br>') || '-'}</td>
+          <td>${s.boxCount || '-'}箱</td>
+          <td>${UI.formatCNY(s.firstLegTotal || 0)}<br><small style="color:#9ca3af;">均价${UI.formatCNY(s.firstLegAvg || 0)}/件</small></td>
+          <td><div class="etd-eta-cell"><div class="etd">ETD ${UI.formatDate(s.etdDate)}</div><div class="eta">ETA ${UI.formatDate(s.etaDate)}</div></div></td>
+          <td><span class="badge ${st.cls}">${st.text}</span>${s.trackingNo ? `<br><a class="tracking-link" href="${trackingLink}" target="_blank" rel="noopener">📮 ${s.trackingNo}</a>` : ''}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-ghost btn-xs" onclick="Tracker.view('${s.id}')" title="查看">👁️</button>
+            <button class="btn btn-ghost btn-xs" style="color:#6366f1" onclick="Tracker.duplicate('${s.id}')" title="复制">📋</button>
+            <button class="btn btn-ghost btn-xs" onclick="Tracker.edit('${s.id}')" title="编辑">✏️</button>
+            <button class="btn btn-ghost btn-xs" style="color:var(--danger)" onclick="Tracker.remove('${s.id}')" title="删除">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    main.innerHTML = `
+      <div class="view active">
+        <div class="toolbar"><h2>📋 货件追踪器</h2><button class="btn btn-primary" onclick="Tracker.create()">➕ 创建货件</button></div>
+        <div class="sub-tabs">
+          <div class="sub-tab ${this.filter==='all'?'active':''}" onclick="Tracker.setFilter('all')">全部 (${DB.getShipments('all').length})</div>
+          <div class="sub-tab ${this.filter==='active'?'active':''}" onclick="Tracker.setFilter('active')">运输中 (${DB.getShipments('active').length})</div>
+          <div class="sub-tab ${this.filter==='signed'?'active':''}" onclick="Tracker.setFilter('signed')">已签收 (${DB.getShipments('signed').length})</div>
+          <div class="sub-tab ${this.filter==='delayed'?'active':''}" onclick="Tracker.setFilter('delayed')">已延误 (${DB.getShipments('delayed').length})</div>
+        </div>
+        <div class="section"><div class="table-wrap"><table>
+          <thead><tr><th>货件编号</th><th>国家</th><th>目标仓</th><th>产品</th><th>箱数</th><th>头程费用</th><th>ETD / ETA</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div></div>
+      </div>`;
+  },
+
+  setFilter(f) { this.filter = f; this.render(); },
+  esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; },
+
+  getTrackingUrl(carrier, trackingNo) {
+    const urls = {
+      'ups': `https://www.ups.com/track?tracknum=${trackingNo}`,
+      'fedex': `https://www.fedex.com/fedextrack/?trknbr=${trackingNo}`,
+      'usps': `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNo}`,
+      'dhl': `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNo}`,
+      'amazon': `https://track.amazon.com/tracking/${trackingNo}`
+    };
+    return urls[carrier] || `https://www.ups.com/track?tracknum=${trackingNo}`;
+  },
+
+  // --- SHIPMENT CREATE (dynamic product lines) ---
+  _shipmentFormHtml(s) {
+    s = s || {};
+    const warehouses = DB.getWarehouses();
+    const whOptions = warehouses.map(w => `<option value="${w.id}" ${w.id===s.warehouseId?'selected':''}>${w.name}</option>`).join('');
+    const countries = ['US','UK','DE','JP','CA','FR','IT','ES','AU','BR','MX','KR','SG'];
+    const countryOptions = countries.map(c => `<option value="${c}" ${c===s.country?'selected':''}>${c}</option>`).join('');
+
+    return `
+      <div class="form-row">
+        <div class="form-group" style="max-width:160px;"><label>目标国家 *</label><select id="sf-country">${countryOptions}</select></div>
+        <div class="form-group" style="max-width:220px;"><label>目标仓 *</label><select id="sf-warehouse">${whOptions}</select></div>
+        <div class="form-group" style="max-width:280px;"><label>货件编号（留空自动生成）</label><input id="sf-no" value="${this.esc(s.shipmentNo || '')}" placeholder="自动生成: US-FBA-260618-001"></div>
+      </div>
+      <div style="margin:16px 0;display:flex;justify-content:space-between;align-items:center;">
+        <label style="font-weight:600;font-size:13px;color:#374151;">📦 选择产品 & 数量</label>
+        <div>
+          <button class="btn btn-ghost btn-sm" onclick="Tracker._addProductLine()">➕ 添加产品行</button>
+          <button class="btn btn-ghost btn-sm" onclick="Products.add(p => { Tracker._addProductLine(p); })" style="margin-left:6px;">⚡ 快速创建产品</button>
+        </div>
+      </div>
+      <div id="sf-products"></div>
+      <div class="form-row" style="margin-top:14px;">
+        <div class="form-group" style="max-width:150px;"><label>出货箱数</label><input type="number" id="sf-boxes" min="1" value="${s.boxCount||''}" placeholder="自动或手动"><div class="form-hint" id="sf-boxes-hint"></div></div>
+        <div class="form-group" style="max-width:170px;"><label>总头程费用 (¥) *</label><input type="number" id="sf-legcost" step="0.01" value="${s.firstLegTotal||''}" placeholder="0.00"></div>
+        <div class="form-group" style="max-width:130px;"><label>计费方式</label><select id="sf-legunit"><option value="KG" ${s.firstLegUnit==='KG'?'selected':''}>按KG</option><option value="CBM" ${s.firstLegUnit==='CBM'?'selected':''}>按CBM</option></select></div>
+      </div>
+      <div style="margin-top:16px;"><label style="font-weight:600;font-size:13px;color:#374151;">🚢 运输信息</label></div>
+      <div class="form-row">
+        <div class="form-group" style="max-width:200px;"><label>货代名称</label><input id="sf-forwarder" value="${this.esc(s.forwarder||'')}" placeholder="货代公司名"></div>
+        <div class="form-group" style="max-width:160px;"><label>运输方式</label><select id="sf-method"><option value="海运快船" ${s.shippingMethod==='海运快船'?'selected':''}>🚢 海运快船</option><option value="海运普船" ${s.shippingMethod==='海运普船'?'selected':''}>🚢 海运普船</option><option value="空运" ${s.shippingMethod==='空运'?'selected':''}>✈️ 空运</option><option value="铁路" ${s.shippingMethod==='铁路'?'selected':''}>🚂 铁路</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="max-width:170px;"><label>ETD（预计开船日）</label><input type="date" id="sf-etd" value="${s.etdDate||''}"></div>
+        <div class="form-group" style="max-width:170px;"><label>ETA（预计到港日）</label><input type="date" id="sf-eta" value="${s.etaDate||''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="max-width:200px;"><label>快递承运商</label><select id="sf-carrier"><option value="">暂无</option><option value="ups" ${s.carrier==='ups'?'selected':''}>UPS</option><option value="fedex" ${s.carrier==='fedex'?'selected':''}>FedEx</option><option value="usps" ${s.carrier==='usps'?'selected':''}>USPS</option><option value="dhl" ${s.carrier==='dhl'?'selected':''}>DHL</option><option value="amazon" ${s.carrier==='amazon'?'selected':''}>Amazon Logistics</option></select></div>
+        <div class="form-group" style="max-width:220px;"><label>派送单号</label><input id="sf-tracking" value="${this.esc(s.trackingNo||'')}" placeholder="快递单号"></div>
+      </div>
+      ${s.status !== undefined ? `
+      <div class="form-row" style="margin-top:12px;">
+        <div class="form-group" style="max-width:160px;"><label>状态</label><select id="sf-status"><option value="in_transit" ${s.status==='in_transit'?'selected':''}>运输中</option><option value="arrived" ${s.status==='arrived'?'selected':''}>已到港</option><option value="delayed" ${s.status==='delayed'?'selected':''}>已延误</option></select></div>
+        <div class="form-group" style="display:flex;align-items:flex-end;gap:12px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:4px;"><input type="checkbox" id="sf-signed" ${s.isSigned?'checked':''} onchange="document.getElementById('sf-signed-date').style.display=this.checked?'block':'none'">已签收</label>
+          <input type="date" id="sf-signed-date" value="${s.signedDate||''}" style="display:${s.isSigned?'block':'none'};max-width:150px;">
+        </div>
+      </div>` : ''}`;
+  },
+
+  _renderProductLines(items) {
+    const products = DB.getProducts();
+    const container = document.getElementById('sf-products');
+    if (!container) return;
+    const prodOptions = products.map(p => `<option value="${p.id}">${this.esc(p.name)} ${p.sku?'('+p.sku+')':''} (${p.unitsPerBox}件/箱)</option>`).join('');
+
+    let html = '';
+    (items || []).forEach((item, i) => {
+      html += this._productLineHtml(i, item, prodOptions);
+    });
+    container.innerHTML = html || '<div style="color:#9ca3af;font-size:13px;padding:8px 0;">点击上方按钮添加产品</div>';
+    // rebind events
+    container.querySelectorAll('.sf-prod-select').forEach(sel => {
+      sel.addEventListener('change', () => Tracker._recalcBoxes());
+    });
+    container.querySelectorAll('.sf-prod-qty').forEach(inp => {
+      inp.addEventListener('input', () => Tracker._recalcBoxes());
+    });
+    Tracker._recalcBoxes();
+  },
+
+  _productLineHtml(i, item, prodOptions) {
+    return `<div class="product-line" data-line="${i}">
+      <div class="form-group" style="min-width:240px;flex:2;">
+        <label>产品</label>
+        <select class="sf-prod-select" data-line="${i}"><option value="">-- 选择产品 --</option>${prodOptions.replace(new RegExp('value="'+this.esc(item.productId||'')+'"'), 'value="'+this.esc(item.productId||'')+'" selected')}</select>
+      </div>
+      <div class="form-group" style="max-width:130px;">
+        <label>数量</label>
+        <input type="number" class="sf-prod-qty" data-line="${i}" value="${item.quantity||''}" min="1" placeholder="件数">
+      </div>
+      <div class="form-group" style="max-width:200px;">
+        <label>箱数换算</label>
+        <div class="box-calc-info" id="box-calc-${i}"></div>
+      </div>
+      <button class="btn-remove" onclick="Tracker._removeProductLine(this)" title="移除">✕</button>
+    </div>`;
+  },
+
+  _addProductLine(product) {
+    const container = document.getElementById('sf-products');
+    if (!container) return;
+    const lines = container.querySelectorAll('.product-line');
+    const nextIdx = lines.length;
+    const item = product ? { productId: product.id, quantity: 1 } : { productId: '', quantity: 0 };
+    const products = DB.getProducts();
+    const prodOptions = products.map(p => `<option value="${p.id}">${this.esc(p.name)} ${p.sku?'('+p.sku+')':''} (${p.unitsPerBox}件/箱)</option>`).join('');
+    const div = document.createElement('div');
+    div.innerHTML = this._productLineHtml(nextIdx, item, prodOptions);
+    const line = div.firstElementChild;
+    container.appendChild(line);
+    // clear empty placeholder
+    const placeholder = container.querySelector('div:not(.product-line)');
+    if (placeholder && container.querySelectorAll('.product-line').length > 0) placeholder.remove();
+    // bind events
+    line.querySelector('.sf-prod-select').addEventListener('change', () => Tracker._recalcBoxes());
+    line.querySelector('.sf-prod-qty').addEventListener('input', () => Tracker._recalcBoxes());
+    Tracker._recalcBoxes();
+  },
+
+  _removeProductLine(btn) {
+    const line = btn.closest('.product-line');
+    if (line) line.remove();
+    const container = document.getElementById('sf-products');
+    if (container && container.querySelectorAll('.product-line').length === 0) {
+      container.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:8px 0;">点击上方按钮添加产品</div>';
+    }
+    Tracker._recalcBoxes();
+  },
+
+  _recalcBoxes() {
+    const container = document.getElementById('sf-products');
+    if (!container) return;
+    const lines = container.querySelectorAll('.product-line');
+    let totalBoxes = 0;
+    let totalUnits = 0;
+
+    lines.forEach(line => {
+      const i = line.getAttribute('data-line');
+      const sel = line.querySelector('.sf-prod-select');
+      const qtyInp = line.querySelector('.sf-prod-qty');
+      const calDiv = document.getElementById('box-calc-' + i);
+      if (!sel || !qtyInp || !calDiv) return;
+
+      const pid = sel.value;
+      const qty = parseInt(qtyInp.value) || 0;
+      if (!pid || qty <= 0) { calDiv.innerHTML = ''; return; }
+
+      const p = DB.getProduct(pid);
+      if (!p || !p.unitsPerBox) { calDiv.innerHTML = ''; return; }
+
+      const exactBoxes = qty / p.unitsPerBox;
+      const fullBoxes = Math.floor(exactBoxes);
+      const remainder = qty % p.unitsPerBox;
+      totalBoxes += Math.ceil(exactBoxes);
+      totalUnits += qty;
+
+      if (remainder === 0) {
+        calDiv.innerHTML = `<span class="ok">✅ ${fullBoxes}箱 (${p.unitsPerBox}件/箱)</span>`;
+      } else {
+        calDiv.innerHTML = `<span class="ok">${fullBoxes}整箱</span> <span class="warn">⚠ 余${remainder}件</span>`;
+      }
+    });
+
+    const boxesInput = document.getElementById('sf-boxes');
+    const hint = document.getElementById('sf-boxes-hint');
+    if (boxesInput && totalBoxes > 0) {
+      if (!boxesInput.dataset.manual) {
+        boxesInput.value = totalBoxes;
+        boxesInput.style.background = '#f0fdf4';
+      }
+      if (hint) hint.innerHTML = `自动计算: ${totalBoxes}箱`;
+    }
+  },
+
+  _readShipmentForm() {
+    const container = document.getElementById('sf-products');
+    const items = [];
+    if (container) {
+      container.querySelectorAll('.product-line').forEach(line => {
+        const sel = line.querySelector('.sf-prod-select');
+        const qtyInp = line.querySelector('.sf-prod-qty');
+        if (sel && qtyInp && sel.value) {
+          const qty = parseInt(qtyInp.value) || 0;
+          if (qty > 0) items.push({ productId: sel.value, quantity: qty });
+        }
+      });
+    }
+    const boxCount = parseInt(document.getElementById('sf-boxes').value) || 0;
+    const firstLegTotal = parseFloat(document.getElementById('sf-legcost').value) || 0;
+    const firstLegUnit = document.getElementById('sf-legunit').value;
+    const totalUnits = items.reduce((s, i) => s + i.quantity, 0);
+    const firstLegAvg = totalUnits > 0 ? firstLegTotal / totalUnits : 0;
+
+    const s = {
+      country: document.getElementById('sf-country').value,
+      warehouseId: document.getElementById('sf-warehouse').value,
+      items, boxCount, firstLegTotal, firstLegUnit, firstLegAvg,
+      forwarder: document.getElementById('sf-forwarder').value.trim(),
+      shippingMethod: document.getElementById('sf-method').value,
+      etdDate: document.getElementById('sf-etd').value,
+      etaDate: document.getElementById('sf-eta').value,
+      carrier: document.getElementById('sf-carrier').value,
+      trackingNo: document.getElementById('sf-tracking').value.trim(),
+      isSigned: false, signedDate: null, status: 'in_transit'
+    };
+
+    const statusEl = document.getElementById('sf-status');
+    if (statusEl) s.status = statusEl.value;
+    const signedEl = document.getElementById('sf-signed');
+    if (signedEl) {
+      s.isSigned = signedEl.checked;
+      if (s.isSigned) s.signedDate = document.getElementById('sf-signed-date').value || new Date().toISOString().slice(0,10);
+    }
+
+    return s;
+  },
+
+  create() {
+    Tracker._tempItems = [];
+    UI.showModal('创建货件', Tracker._shipmentFormHtml({}), () => {
+      const s = Tracker._readShipmentForm();
+      if (s.items.length === 0) { UI.toast('请选择至少一个产品并填写数量', 'error'); return; }
+      if (s.boxCount <= 0) { UI.toast('请输入出货箱数', 'error'); return; }
+      if (s.firstLegTotal <= 0) { UI.toast('请输入总头程费用', 'error'); return; }
+      let shipmentNo = document.getElementById('sf-no').value.trim();
+      if (!shipmentNo) shipmentNo = DB.generateShipmentNo(s.country, s.warehouseId);
+      s.shipmentNo = shipmentNo;
+      DB.addShipment(s);
+      Tracker.render();
+      UI.toast(`货件 ${shipmentNo} 创建成功 ✅`, 'success');
+    });
+    setTimeout(() => Tracker._renderProductLines([]), 150);
+
+    // manual box override detection
+    setTimeout(() => {
+      const boxesInput = document.getElementById('sf-boxes');
+      if (boxesInput) {
+        boxesInput.addEventListener('focus', () => { boxesInput.dataset.manual = '1'; boxesInput.style.background = '#fff'; });
+        boxesInput.addEventListener('input', () => { boxesInput.dataset.manual = '1'; boxesInput.style.background = '#fff'; });
+      }
+    }, 200);
+  },
+
+  view(id) {
+    const s = DB.getShipment(id); if (!s) return;
+    const warehouses = DB.getWarehouses();
+    const wh = warehouses.find(w => w.id === s.warehouseId);
+    const st = UI.getShipmentStatus(s);
+    const trackingUrl = s.carrier && s.trackingNo ? Tracker.getTrackingUrl(s.carrier, s.trackingNo) : '';
+    const itemsHtml = (s.items || []).map(i => { const p = DB.getProduct(i.productId); return `<tr><td>${p?.name || '?'} ${p?.sku ? '('+p.sku+')' : ''}</td><td>${i.quantity} 件</td></tr>`; }).join('');
+
+    UI.showModal(`货件详情 - ${s.shipmentNo}`, `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div><div style="font-size:11px;color:#6b7280;">货件编号</div><div style="font-weight:700;font-family:monospace;">${this.esc(s.shipmentNo)}</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">状态</div><span class="badge ${st.cls}">${st.text}</span>${s.isSigned && s.signedDate ? ` <small>(${UI.formatDate(s.signedDate)})</small>` : ''}</div>
+        <div><div style="font-size:11px;color:#6b7280;">国家</div><div>${this.esc(s.country)}</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">目标仓</div><div>${this.esc(wh?.name || s.warehouseId)}</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">运输方式</div><div>${this.esc(s.shippingMethod || '-')}</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">货代</div><div>${this.esc(s.forwarder || '-')}</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">ETD</div><div style="color:#2563eb;font-weight:500;">${UI.formatDate(s.etdDate)}</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">ETA</div><div style="color:#059669;font-weight:500;">${UI.formatDate(s.etaDate)}</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">快递追踪</div><div>${trackingUrl ? `<a class="tracking-link" href="${trackingUrl}" target="_blank" rel="noopener">📮 ${this.esc(s.trackingNo)} (${s.carrier?.toUpperCase()})</a>` : '-'}</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">出货箱数</div><div>${s.boxCount || '-'} 箱</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">头程费用</div><div>总 ${UI.formatCNY(s.firstLegTotal || 0)} | 均价 ${UI.formatCNY(s.firstLegAvg || 0)}/件 (${s.firstLegUnit || 'KG'})</div></div>
+        <div><div style="font-size:11px;color:#6b7280;">创建时间</div><div>${UI.formatDate(s.createdAt)}</div></div>
+      </div>
+      <div style="margin-top:16px;"><div style="font-size:11px;color:#6b7280;margin-bottom:8px;">产品明细</div><table><thead><tr><th>产品</th><th>数量</th></tr></thead><tbody>${itemsHtml || '<tr><td colspan="2">-</td></tr>'}</tbody></table></div>
+    `);
+  },
+
+  edit(id) {
+    const s = DB.getShipment(id); if (!s) return;
+    UI.showModal(`编辑货件 - ${s.shipmentNo}`, Tracker._shipmentFormHtml(s), () => {
+      const d = Tracker._readShipmentForm();
+      if (d.items.length === 0) { UI.toast('请选择至少一个产品并填写数量', 'error'); return; }
+      if (d.boxCount <= 0) { UI.toast('请输入出货箱数', 'error'); return; }
+      const totalUnits = d.items.reduce((sum, i) => sum + i.quantity, 0);
+      d.firstLegAvg = totalUnits > 0 ? d.firstLegTotal / totalUnits : 0;
+      d.shipmentNo = document.getElementById('sf-no').value.trim();
+      DB.updateShipment(id, d);
+      Tracker.render();
+      UI.toast('货件更新成功 ✅', 'success');
+    });
+    setTimeout(() => Tracker._renderProductLines(s.items || []), 150);
+    setTimeout(() => {
+      const boxesInput = document.getElementById('sf-boxes');
+      if (boxesInput) {
+        boxesInput.addEventListener('focus', () => { boxesInput.dataset.manual = '1'; boxesInput.style.background = '#fff'; });
+        boxesInput.addEventListener('input', () => { boxesInput.dataset.manual = '1'; boxesInput.style.background = '#fff'; });
+      }
+    }, 200);
+  },
+
+  duplicate(id) {
+    const s = DB.getShipment(id); if (!s) return;
+    const copy = JSON.parse(JSON.stringify(s));
+    copy.shipmentNo = DB.generateShipmentNo(copy.country, copy.warehouseId);
+    copy.isSigned = false; copy.signedDate = null; copy.status = 'in_transit';
+    copy.trackingNo = '';
+    DB.addShipment(copy);
+    Tracker.render();
+    UI.toast(`货件已复制 → ${copy.shipmentNo} ✅`, 'success');
+  },
+
+  remove(id) {
+    const s = DB.getShipment(id);
+    if (!UI.confirm(`确定删除货件「${s.shipmentNo}」吗？此操作不可撤销。`)) return;
+    DB.deleteShipment(id);
+    Tracker.render();
+    UI.toast('货件已删除', 'info');
+  }
+};
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => App.init());
+// Modal only closes by button or Escape - NOT by clicking overlay
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') UI.closeModal();
+  App.resetAutoLock();
+});
+document.addEventListener('click', (e) => { App.resetAutoLock(); });
+</script>
+</body>
+</html>

@@ -58,6 +58,11 @@ body {
 .sidebar .user-area { padding: 16px; border-top: 1px solid rgba(255,255,255,.1); }
 .sidebar .user-area .lock-btn { width: 100%; padding: 8px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; background: transparent; color: rgba(255,255,255,.7); cursor: pointer; font-size: 12px; transition: all .2s; }
 .sidebar .user-area .lock-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+.toolswitch { margin-top: 10px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 10px; }
+.toolswitch-label { font-size: 10px; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; padding: 0 2px; }
+.toolswitch-label span { display: inline; }
+.toolswitch-link { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; color: rgba(255,255,255,.55); text-decoration: none; font-size: 12px; transition: all .2s; }
+.toolswitch-link:hover { background: rgba(255,255,255,.08); color: #fff; }
 
 .main { margin-left: var(--sidebar-w); padding: 28px 40px; min-height: 100vh; max-width: calc(var(--content-max) + var(--sidebar-w)); }
 
@@ -220,7 +225,14 @@ tbody tr:hover { background: #f8fafc; }
       <a data-view="products" onclick="App.nav('products')"><span class="nav-icon">📦</span> <span>产品管理</span></a>
       <a data-view="warehouses" onclick="App.nav('warehouses')"><span class="nav-icon">🏭</span> <span>平台仓管理</span></a>
     </nav>
-    <div class="user-area"><button class="lock-btn" onclick="App.lock()">🔒 <span>锁定应用</span></button></div>
+    <div class="user-area">
+      <button class="lock-btn" onclick="App.lock()">🔒 <span>锁定应用</span></button>
+      <div class="toolswitch">
+        <div class="toolswitch-label"><span>切换工具</span></div>
+        <a href="https://leonaknak.github.io/shipping-tool/currency-converter.html" class="toolswitch-link">💱 <span>汇率换算</span></a>
+        <a href="https://leonaknak.github.io/shipping-tool/world-clock.html" class="toolswitch-link">🌍 <span>世界时间</span></a>
+      </div>
+    </div>
   </aside>
   <div class="main" id="main-content"></div>
 </div>

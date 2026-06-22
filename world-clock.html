@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>世界时间 - World Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@300;400;500&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<style>
+/* ═══════════ MATERIAL DESIGN 3 TOKENS ═══════════ */
+:root {
+  --md-primary: #4f46e5;
+  --md-on-primary: #fff;
+  --md-primary-container: #e0e7ff;
+  --md-on-primary-container: #1e1b4b;
+  --md-secondary: #625b71;
+  --md-secondary-container: #e8def8;
+  --md-on-secondary-container: #1d192b;
+  --md-surface: #fefefe;
+  --md-surface-dim: #ded8e1;
+  --md-surface-bright: #fefefe;
+  --md-surface-cl: #ffffff;
+  --md-surface-c-low: #f7f2fa;
+  --md-surface-c: #f3edf7;
+  --md-surface-c-high: #ece6f0;
+  --md-surface-c-highest: #e6e0e9;
+  --md-on-surface: #1c1b1f;
+  --md-on-surface-var: #49454f;
+  --md-outline: #79747e;
+  --md-outline-var: #cac4d0;
+  --md-inverse-surface: #313033;
+  --md-inverse-on-surface: #f4eff4;
+  --md-error: #b3261e;
+  --md-elev-1: 0 1px 2px rgba(0,0,0,.3),0 1px 3px 1px rgba(0,0,0,.15);
+  --md-elev-2: 0 1px 2px rgba(0,0,0,.3),0 2px 6px 2px rgba(0,0,0,.15);
+  --md-elev-3: 0 4px 8px 3px rgba(0,0,0,.15),0 1px 3px rgba(0,0,0,.3);
+  --md-shape-xs:4px;--md-shape-s:8px;--md-shape-m:12px;--md-shape-l:16px;--md-shape-xl:28px;--md-shape-full:9999px;
+  --md-std: cubic-bezier(.2,0,0,1);
+  --md-dur-s: 200ms;--md-dur-m: 300ms;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Roboto',sans-serif;background:var(--md-surface-c-low);color:var(--md-on-surface);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ═══════════ TOP APP BAR ═══════════ */
+.md-topbar{background:var(--md-surface);position:sticky;top:0;z-index:50;border-bottom:1px solid var(--md-outline-var)}
+.md-topbar__row{display:flex;align-items:center;padding:10px 16px;gap:12px;max-width:1400px;margin:0 auto}
+.md-topbar__title{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:500;color:var(--md-on-surface);letter-spacing:-.3px;flex:1}
+.md-topbar__title .material-symbols-rounded{font-size:28px;color:var(--md-primary)}
+.md-topbar__actions{display:flex;align-items:center;gap:8px}
+
+/* ═══════════ CHIP ═══════════ */
+.md-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--md-shape-s);font-size:12px;font-weight:500;background:var(--md-secondary-container);color:var(--md-on-secondary-container);white-space:nowrap}
+.md-chip .material-symbols-rounded{font-size:16px}
+
+/* ═══════════ ICON BUTTON ═══════════ */
+.md-ibtn{width:40px;height:40px;border-radius:var(--md-shape-full);border:none;background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--md-on-surface-var);transition:background var(--md-dur-s) var(--md-std);position:relative;overflow:hidden;flex-shrink:0}
+.md-ibtn:hover{background:rgba(28,27,31,.08)}
+.md-ibtn:active{background:rgba(28,27,31,.12)}
+.md-ibtn .material-symbols-rounded{font-size:24px}
+
+/* ═══════════ SEARCH BAR ═══════════ */
+.md-search-wrap{padding:12px 16px 0;max-width:1400px;margin:0 auto}
+.md-search{display:flex;align-items:center;gap:12px;background:var(--md-surface-c-high);border-radius:var(--md-shape-xl);padding:0 16px;height:50px;border:1px solid transparent;transition:all var(--md-dur-s) var(--md-std)}
+.md-search:focus-within{background:var(--md-surface-cl);border-color:var(--md-primary);box-shadow:var(--md-elev-2)}
+.md-search .material-symbols-rounded{color:var(--md-on-surface-var);font-size:20px;flex-shrink:0}
+.md-search input{flex:1;border:none;background:transparent;font-size:14px;font-family:inherit;color:var(--md-on-surface);outline:none}
+.md-search input::placeholder{color:var(--md-on-surface-var)}
+
+/* ═══════════ BUTTONS ═══════════ */
+.md-btn-filled{padding:10px 24px;border-radius:var(--md-shape-full);border:none;background:var(--md-primary);color:var(--md-on-primary);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all var(--md-dur-s) var(--md-std);white-space:nowrap}
+.md-btn-filled:hover{box-shadow:var(--md-elev-1)}
+.md-btn-filled:active{transform:scale(.96)}
+.md-btn-outlined{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:var(--md-shape-full);border:1px solid var(--md-outline);background:transparent;font-size:13px;font-weight:500;font-family:inherit;color:var(--md-primary);cursor:pointer;transition:all var(--md-dur-s) var(--md-std);white-space:nowrap}
+.md-btn-outlined:hover{background:rgba(79,70,229,.08)}
+.md-btn-outlined .material-symbols-rounded{font-size:16px}
+.md-btn-text{padding:8px 12px;border-radius:var(--md-shape-full);border:none;background:transparent;font-size:14px;font-weight:500;font-family:inherit;color:var(--md-primary);cursor:pointer;transition:background var(--md-dur-s) var(--md-std);white-space:nowrap}
+.md-btn-text:hover{background:rgba(79,70,229,.08)}
+
+/* ═══════════ CONVERT BANNER ═══════════ */
+.md-convert-banner{max-width:1400px;margin:8px auto 0;padding:0 16px;display:none}
+.md-convert-banner.active{display:block}
+.md-convert-banner__inner{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--md-primary-container);border-radius:var(--md-shape-m);font-size:13px;color:var(--md-on-primary-container);animation:md-slide var(--md-dur-m) var(--md-std)}
+.md-convert-banner__inner b{color:var(--md-primary)}
+@keyframes md-slide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════ TOOLBAR ═══════════ */
+.md-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;max-width:1400px;margin:0 auto}
+.md-toolbar__info{font-size:13px;color:var(--md-on-surface-var)}
+.md-toolbar__actions{display:flex;gap:8px;align-items:center}
+
+/* ═══════════ THREE-COLUMN LAYOUT ═══════════ */
+.main-layout{display:grid;grid-template-columns:320px 1fr;gap:12px;padding:0 16px 80px;max-width:1400px;margin:0 auto}
+@media(max-width:900px){.main-layout{grid-template-columns:1fr}}
+.clock-area{position:relative}
+.md-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+@media(max-width:640px){.md-grid{grid-template-columns:1fr}}
+
+/* ═══════════ CLOCK CARD ═══════════ */
+.md-card{border-radius:var(--md-shape-m);padding:18px;transition:box-shadow var(--md-dur-m) var(--md-std),background var(--md-dur-m) var(--md-std);position:relative;cursor:default}
+.md-card--elevated{background:var(--md-surface-cl);box-shadow:var(--md-elev-1)}
+.md-card--elevated:hover{box-shadow:var(--md-elev-2)}
+.md-card--filled{background:var(--md-surface-c);box-shadow:none}
+.md-card--filled:hover{box-shadow:var(--md-elev-1)}
+.md-card.is-base{border:2px solid var(--md-primary)}
+.md-card.is-base .card-country::after{content:'基准';font-size:10px;font-weight:500;background:var(--md-primary);color:var(--md-on-primary);padding:2px 8px;border-radius:var(--md-shape-full);margin-left:8px;vertical-align:middle}
+
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.card-country{font-size:20px;font-weight:700;color:var(--md-on-surface);line-height:1.3;letter-spacing:-.2px}
+.card-city{font-size:12px;color:var(--md-on-surface-var);margin-top:2px;letter-spacing:.1px}
+.card-right{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.card-utc{font-size:11px;font-weight:500;padding:4px 10px;border-radius:var(--md-shape-xs);background:var(--md-primary-container);color:var(--md-on-primary-container);font-family:'Roboto Mono',monospace;letter-spacing:.3px}
+.card-del{width:28px;height:28px;border-radius:var(--md-shape-full);border:none;background:transparent;color:var(--md-on-surface-var);cursor:pointer;font-size:20px;display:none;align-items:center;justify-content:center;transition:all var(--md-dur-s) var(--md-std)}
+.md-card:hover .card-del{display:flex}
+.card-del:hover{background:rgba(179,38,30,.08);color:var(--md-error)}
+
+.card-date{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--md-on-surface-var);margin-bottom:12px;flex-wrap:wrap}
+.card-offset{font-size:11px;padding:2px 8px;border-radius:var(--md-shape-full);background:var(--md-surface-c-highest);color:var(--md-on-surface-var);font-weight:500}
+.card-offset--base{background:var(--md-secondary-container);color:var(--md-on-secondary-container)}
+
+.card-time{font-size:32px;font-weight:300;color:var(--md-on-surface);font-family:'Roboto Mono','Courier New',monospace;letter-spacing:2px;line-height:1}
+
+/* holiday hint below card-time */
+.card-holiday{margin-top:8px;padding:5px 10px;border-radius:var(--md-shape-s);background:rgba(245,158,11,.1);border-left:3px solid #f59e0b;font-size:11px;color:#92400e;line-height:1.4}
+.card-weekend{margin-top:6px;padding:4px 10px;border-radius:var(--md-shape-s);background:rgba(99,102,241,.08);font-size:11px;color:var(--md-primary);font-weight:500}
+
+/* ═══════════ MARKETING CALENDAR PANEL ═══════════ */
+.mkt-panel{background:var(--md-surface-cl);border-radius:var(--md-shape-l);box-shadow:var(--md-elev-1);overflow:hidden;position:sticky;top:64px;max-height:calc(100vh - 80px);display:flex;flex-direction:column}
+.mkt-panel__head{padding:14px 16px 10px;border-bottom:1px solid var(--md-outline-var);flex-shrink:0}
+.mkt-panel__title{font-size:14px;font-weight:600;color:var(--md-on-surface);display:flex;align-items:center;gap:6px}
+.mkt-panel__title .material-symbols-rounded{font-size:18px;color:var(--md-primary)}
+.mkt-panel__sub{font-size:11px;color:var(--md-on-surface-var);margin-top:2px}
+.mkt-panel__body{flex:1;overflow-y:auto;padding:8px 0}
+.mkt-panel__body::-webkit-scrollbar{width:4px}
+.mkt-panel__body::-webkit-scrollbar-thumb{background:var(--md-outline-var);border-radius:2px}
+
+.mkt-platform{margin-bottom:2px}
+.mkt-platform__name{display:flex;align-items:center;gap:8px;padding:7px 16px 5px;font-size:11px;font-weight:600;color:var(--md-on-surface-var);letter-spacing:.5px;text-transform:uppercase;cursor:pointer;user-select:none}
+.mkt-platform__name:hover{background:rgba(28,27,31,.04)}
+.mkt-platform__name .plat-icon{width:20px;height:20px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.mkt-platform__name .chevron{margin-left:auto;font-size:14px;color:var(--md-outline);transition:transform var(--md-dur-s)}
+.mkt-platform__name.collapsed .chevron{transform:rotate(-90deg)}
+.mkt-events{padding:0 8px}
+
+.mkt-event{display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:var(--md-shape-s);margin-bottom:2px;transition:background var(--md-dur-s)}
+.mkt-event:hover{background:rgba(28,27,31,.06)}
+.mkt-event.is-active{background:rgba(79,70,229,.06)}
+.mkt-event.is-soon{background:rgba(245,158,11,.06)}
+
+.mkt-event__main{flex:1;min-width:0}
+.mkt-event__name{font-size:12px;font-weight:500;color:var(--md-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mkt-event__region{font-size:10px;color:var(--md-on-surface-var);margin-top:1px}
+.mkt-event__dates{font-size:10px;color:var(--md-on-surface-var);margin-top:1px;font-family:'Roboto Mono',monospace}
+.mkt-event__status{font-size:10px;padding:2px 6px;border-radius:var(--md-shape-full);font-weight:600;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.mkt-event__status.active-badge{background:#dcfce7;color:#166534}
+.mkt-event__status.soon-badge{background:#fef3c7;color:#92400e}
+.mkt-event__status.past-badge{background:var(--md-surface-c-highest);color:var(--md-on-surface-var)}
+
+.mkt-clock-btn{width:26px;height:26px;flex-shrink:0;border-radius:var(--md-shape-full);border:1px solid var(--md-outline-var);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--md-on-surface-var);transition:all var(--md-dur-s);margin-top:2px}
+.mkt-clock-btn:hover{background:var(--md-primary);border-color:var(--md-primary);color:#fff}
+.mkt-clock-btn .material-symbols-rounded{font-size:14px}
+
+/* Platform colors */
+.plat-amazon{background:#f90;}
+.plat-tiktok{background:#010101;}
+.plat-ebay{background:#e53238;}
+.plat-temu{background:#fb4804;}
+.plat-walmart{background:#0071dc;}
+.plat-shopee{background:#ee4d2d;}
+.plat-lazada{background:#f57224;}
+.plat-mercado{background:#ffe600;color:#333!important}
+
+/* ═══════════ FLOATING CALENDAR ═══════════ */
+.cal-fab{position:fixed;right:20px;bottom:20px;width:140px;background:var(--md-surface-cl);box-shadow:var(--md-elev-3);border:1px solid var(--md-outline-var);border-radius:var(--md-shape-l);display:flex;flex-direction:column;cursor:pointer;z-index:60;transition:all var(--md-dur-s);padding:10px 12px;gap:4px}
+.cal-fab:hover{box-shadow:0 6px 10px 4px rgba(0,0,0,.15)}
+.cal-fab__title{font-size:13px;font-weight:600;color:var(--md-on-surface);display:flex;align-items:center;gap:6px}
+.cal-fab__title .material-symbols-rounded{font-size:18px;color:var(--md-primary)}
+.cal-fab__yi-ji{font-size:11px;color:var(--md-on-surface-var);line-height:1.4;display:flex;gap:6px;flex-wrap:wrap}
+.cal-fab__yi-ji .yi-tag{color:#166534;background:#dcfce7;padding:1px 5px;border-radius:var(--md-shape-full);font-size:10px}
+.cal-fab__yi-ji .ji-tag{color:#991b1b;background:#fee2e2;padding:1px 5px;border-radius:var(--md-shape-full);font-size:10px}
+
+.cal-panel{position:fixed;right:170px;bottom:20px;width:340px;background:var(--md-surface-cl);border-radius:var(--md-shape-xl);box-shadow:var(--md-elev-4);z-index:70;display:none;overflow:hidden;animation:cal-in var(--md-dur-m) var(--md-std)}
+.cal-panel.active{display:block}
+@keyframes cal-in{from{opacity:0;transform:scale(.9) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--md-outline-var)}
+.cal-head__title{font-size:16px;font-weight:500}
+.cal-head__nav{display:flex;gap:2px}
+
+.cal-today-info{padding:12px 20px;border-bottom:1px solid var(--md-outline-var)}
+.cal-date-big{font-size:13px;font-weight:500;color:var(--md-on-surface)}
+.cal-lunar{font-size:12px;color:var(--md-primary);margin-top:3px}
+.cal-yi-ji{display:flex;gap:12px;margin-top:6px}
+.cal-yi{font-size:11px;color:#166534;background:#dcfce7;padding:3px 8px;border-radius:var(--md-shape-full)}
+.cal-ji{font-size:11px;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:var(--md-shape-full)}
+
+.cal-grid-head{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:10px 12px 4px}
+.cal-grid-head span{text-align:center;font-size:11px;color:var(--md-on-surface-var);font-weight:500}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 12px 12px}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;font-size:12px;cursor:pointer;position:relative;gap:1px;transition:background var(--md-dur-s)}
+.cal-day:hover{background:var(--md-surface-variant)}
+.cal-day.today{background:var(--md-primary);color:#fff}
+.cal-day.today .cal-day-lunar{color:rgba(255,255,255,.7)}
+.cal-day.today:hover{background:var(--md-primary)}
+.cal-day.selected{background:var(--md-tertiary);color:var(--md-on-tertiary)}
+.cal-day.selected .cal-day-lunar{color:rgba(255,255,255,.7)}
+.cal-day.weekend{color:var(--md-primary)}
+.cal-day.other-month{opacity:.3}
+.cal-day.holiday .cal-day-num::before{content:'';position:absolute;top:-3px;right:-3px;width:6px;height:6px;background:#ef4444;border-radius:50%;z-index:1}
+.cal-day-num{font-size:12px;position:relative}
+.cal-day-lunar{font-size:9px;color:var(--md-on-surface-var);line-height:1}
+.cal-day.today .cal-day-lunar{color:rgba(255,255,255,.75)}
+
+/* ═══════════ FAB (hidden) ═══════════ */
+.md-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:var(--md-shape-l);border:none;background:var(--md-primary-container);color:var(--md-on-primary-container);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--md-elev-3);transition:all var(--md-dur-s) var(--md-std);z-index:40}
+.md-fab:hover{box-shadow:0 6px 10px 4px rgba(0,0,0,.15),0 2px 3px rgba(0,0,0,.3)}
+.md-fab:active{transform:scale(.95)}
+.md-fab .material-symbols-rounded{font-size:24px}
+
+/* ═══════════ DIALOG ═══════════ */
+.md-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:24px}
+.md-overlay.active{display:flex}
+.md-dialog{background:var(--md-surface-cl);border-radius:var(--md-shape-xl);width:100%;max-width:560px;max-height:85vh;display:flex;flex-direction:column;box-shadow:var(--md-elev-3);animation:dlg-in var(--md-dur-m) var(--md-std)}
+@keyframes dlg-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.md-dialog__head{display:flex;align-items:center;justify-content:space-between;padding:24px 24px 0}
+.md-dialog__title{font-size:24px;font-weight:400;color:var(--md-on-surface)}
+.md-dialog__search{padding:16px 24px 0}
+.md-dialog__input{display:flex;align-items:center;height:56px;padding:0 16px;border:1px solid var(--md-outline);border-bottom:2px solid var(--md-outline);border-radius:var(--md-shape-xs) var(--md-shape-xs) 0 0;transition:border-color var(--md-dur-s) var(--md-std)}
+.md-dialog__input:focus-within{border-color:var(--md-primary)}
+.md-dialog__input input{flex:1;border:none;background:transparent;font-size:16px;font-family:inherit;color:var(--md-on-surface);outline:none}
+.md-dialog__input input::placeholder{color:var(--md-on-surface-var)}
+.md-dialog__list{flex:1;overflow-y:auto;padding:8px 0;margin-top:8px}
+.md-dialog__list::-webkit-scrollbar{width:6px}
+.md-dialog__list::-webkit-scrollbar-thumb{background:var(--md-outline-var);border-radius:3px}
+.md-li{display:flex;align-items:center;gap:16px;padding:14px 24px;cursor:pointer;transition:background var(--md-dur-s) var(--md-std)}
+.md-li:hover{background:rgba(28,27,31,.08)}
+.md-li--cont{padding:8px 24px;font-size:12px;font-weight:500;color:var(--md-on-surface-var);letter-spacing:.5px;cursor:default;background:var(--md-surface-c-low)}
+.md-li__info{flex:1}
+.md-li__name{font-size:14px;font-weight:500;color:var(--md-on-surface)}
+.md-li__name .added-tag{font-size:11px;color:var(--md-on-surface-var);font-weight:400}
+.md-li__detail{font-size:12px;color:var(--md-on-surface-var);margin-top:2px}
+.md-li__badge{font-size:11px;font-weight:500;padding:4px 10px;border-radius:var(--md-shape-xs);background:var(--md-primary-container);color:var(--md-on-primary-container);font-family:'Roboto Mono',monospace}
+.md-li__add{padding:8px 16px;border-radius:var(--md-shape-full);border:1px solid var(--md-outline);background:transparent;color:var(--md-primary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all var(--md-dur-s) var(--md-std)}
+.md-li__add.added{border-color:var(--md-outline-var);color:var(--md-on-surface-var);cursor:default;background:var(--md-surface-c-low)}
+.md-li__add:not(.added):hover{background:var(--md-primary);color:var(--md-on-primary);border-color:var(--md-primary)}
+.md-settings{padding:8px 24px 16px}
+.md-settings__group{margin-bottom:20px}
+.md-settings__label{font-size:14px;font-weight:500;color:var(--md-on-surface-var);margin-bottom:10px}
+.md-seg{display:flex;border:1px solid var(--md-outline);border-radius:var(--md-shape-full);overflow:hidden}
+.md-seg__btn{flex:1;padding:12px 16px;border:none;background:transparent;font-size:14px;font-weight:500;font-family:inherit;color:var(--md-on-surface);cursor:pointer;transition:all var(--md-dur-s) var(--md-std);border-right:1px solid var(--md-outline)}
+.md-seg__btn:last-child{border-right:none}
+.md-seg__btn.active{background:var(--md-secondary-container);color:var(--md-on-secondary-container)}
+.md-sel{width:100%;padding:14px 16px;border:1px solid var(--md-outline);border-radius:var(--md-shape-xs);font-size:16px;font-family:inherit;background:var(--md-surface-cl);color:var(--md-on-surface);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath fill='%2379747E' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.md-sel:focus{border-color:var(--md-primary);border-width:2px;padding:13px 15px}
+.md-dialog__actions{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--md-outline-var)}
+.md-snack{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--md-inverse-surface);color:var(--md-inverse-on-surface);padding:14px 20px;border-radius:var(--md-shape-xs);font-size:14px;opacity:0;pointer-events:none;transition:all var(--md-dur-m) var(--md-std);z-index:200;white-space:nowrap;box-shadow:var(--md-elev-3)}
+.md-snack.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.md-menu{position:absolute;top:calc(100% + 4px);right:0;background:var(--md-surface-cl);border-radius:var(--md-shape-m);box-shadow:var(--md-elev-3);width:200px;display:none;z-index:60;padding:8px 0;overflow:hidden}
+.md-menu.active{display:block}
+.md-menu__item{padding:14px 16px;font-size:14px;color:var(--md-on-surface);cursor:pointer;transition:background var(--md-dur-s) var(--md-std)}
+.md-menu__item:hover{background:rgba(28,27,31,.08)}
+.drag-handle{position:absolute;left:6px;top:50%;transform:translateY(-50%);width:14px;height:22px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:grab;opacity:.35}
+.drag-handle span{width:8px;height:1.5px;background:var(--md-outline);border-radius:1px}
+.sort-mode .md-card{padding-left:36px;cursor:grab}
+.sort-mode .md-card:hover .card-del{display:none!important}
+.sort-mode .drag-handle{display:flex}
+.sort-mode .md-card.dragging{opacity:.4}
+.md-empty{grid-column:1/-1;text-align:center;padding:60px 24px;color:var(--md-on-surface-var)}
+.md-empty .material-symbols-rounded{font-size:64px;color:var(--md-outline-var);display:block;margin-bottom:16px}
+footer{text-align:center;padding:24px 16px 20px;font-size:12px;color:var(--md-on-surface-var);max-width:1400px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOP APP BAR ═══ -->
+<header class="md-topbar">
+  <div class="md-topbar__row">
+    <div class="md-topbar__title">
+      <span class="material-symbols-rounded">public</span>
+      世界时间
+    </div>
+    <div class="md-topbar__actions">
+      <div class="md-chip" id="baseChip">
+        <span class="material-symbols-rounded">my_location</span>
+        <span id="baseTzLabel">基准: 中国 (北京) · UTC+8</span>
+      </div>
+      <button class="md-ibtn" id="settingsBtn" title="时区设置">
+        <span class="material-symbols-rounded">settings</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ SEARCH / CONVERT ═══ -->
+<div class="md-search-wrap">
+  <div class="md-search">
+    <span class="material-symbols-rounded">schedule</span>
+    <input type="text" id="convertInput" placeholder="时间转换：如 成都 9点、纽约 14:30、伦敦 2026-06-01 09:00">
+    <button class="md-btn-filled" id="convertBtn" style="padding:8px 18px;font-size:13px">转换</button>
+  </div>
+</div>
+<!-- ═══ CONVERT BANNER ═══ -->
+<div class="md-convert-banner" id="convertBanner">
+  <div class="md-convert-banner__inner">
+    <span class="material-symbols-rounded" style="font-size:18px">sync</span>
+    <span id="convertText"></span>
+    <button class="md-btn-text" id="backBtn" style="margin-left:auto;font-size:13px">回到实时</button>
+  </div>
+</div>
+
+<!-- ═══ TOOLBAR ═══ -->
+<div class="md-toolbar">
+  <span class="md-toolbar__info" id="cityCount">共 0 个城市</span>
+  <div class="md-toolbar__actions">
+    <div style="position:relative">
+      <button class="md-btn-outlined" id="btnSort">
+        <span class="material-symbols-rounded">sort</span>
+        排序
+      </button>
+      <div class="md-menu" id="sortMenu">
+        <div class="md-menu__item" data-sort="tz-asc">按时区（从早到晚）</div>
+        <div class="md-menu__item" data-sort="tz-desc">按时区（从晚到早）</div>
+        <div class="md-menu__item" data-sort="name">按国家名称</div>
+        <div class="md-menu__item" data-sort="continent">按大洲分组</div>
+      </div>
+    </div>
+    <button class="md-btn-filled" id="btnAddToolbar" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;font-size:13px">
+      <span class="material-symbols-rounded" style="font-size:16px">add</span>
+      添加城市
+    </button>
+  </div>
+</div>
+
+<!-- ═══ MAIN LAYOUT ═══ -->
+<div class="main-layout">
+  <!-- COL 1: Marketing Calendar -->
+  <div class="mkt-panel" id="mktPanel">
+    <div class="mkt-panel__head">
+      <div class="mkt-panel__title">
+        <span class="material-symbols-rounded">campaign</span>
+        全球营销日历
+      </div>
+      <div class="mkt-panel__sub">主流平台全平台级大促</div>
+    </div>
+    <div class="mkt-panel__body" id="mktBody"></div>
+  </div>
+
+  <!-- COL 2+3: Clock Grid -->
+  <div class="clock-area">
+    <div class="md-grid" id="clockGrid"></div>
+  </div>
+</div>
+
+<!-- ═══ FLOATING CALENDAR FAB ═══ -->
+<div class="cal-fab" id="calFab" title="点击展开万年历">
+  <div class="cal-fab__title"><span class="material-symbols-rounded">calendar_month</span> 万年历</div>
+  <div class="cal-fab__yi-ji" id="calFabYiJi"></div>
+</div>
+
+<!-- ═══ CALENDAR PANEL ═══ -->
+<div class="cal-panel" id="calPanel">
+  <div class="cal-head">
+    <div class="cal-head__title" id="calTitle">2026年6月</div>
+    <div class="cal-head__nav">
+      <button class="md-ibtn" id="calPrev" style="width:32px;height:32px"><span class="material-symbols-rounded" style="font-size:18px">chevron_left</span></button>
+      <button class="md-ibtn" id="calNext" style="width:32px;height:32px"><span class="material-symbols-rounded" style="font-size:18px">chevron_right</span></button>
+    </div>
+  </div>
+  <div class="cal-today-info">
+    <div class="cal-date-big" id="calDateBig"></div>
+    <div class="cal-lunar" id="calLunarInfo"></div>
+    <div class="cal-yi-ji" id="calYiJi"></div>
+  </div>
+  <div class="cal-grid-head" id="calGridHead"></div>
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<!-- ═══ FAB (hidden) ═══ -->
+<button class="md-fab" id="addFab" title="添加城市" style="display:none">
+  <span class="material-symbols-rounded">add</span>
+</button>
+
+<!-- ═══ ADD CITY DIALOG ═══ -->
+<div class="md-overlay" id="addOverlay">
+  <div class="md-dialog">
+    <div class="md-dialog__head">
+      <span class="md-dialog__title">添加城市</span>
+      <button class="md-ibtn" id="addClose"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="md-dialog__search">
+      <div class="md-dialog__input">
+        <span class="material-symbols-rounded" style="font-size:20px;color:var(--md-on-surface-var);margin-right:12px">search</span>
+        <input type="text" id="addSearch" placeholder="搜索国家或城市，如 成都、纽约、英国">
+      </div>
+    </div>
+    <div class="md-dialog__list" id="addList"></div>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS DIALOG ═══ -->
+<div class="md-overlay" id="settingsOverlay">
+  <div class="md-dialog">
+    <div class="md-dialog__head">
+      <span class="md-dialog__title">时区设置</span>
+      <button class="md-ibtn" id="settingsClose"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="md-settings">
+      <div class="md-settings__group">
+        <div class="md-settings__label">基准时区模式</div>
+        <div class="md-seg">
+          <button class="md-seg__btn active" id="modeAuto">自动检测</button>
+          <button class="md-seg__btn" id="modeManual">手动设置</button>
+        </div>
+      </div>
+      <div class="md-settings__group" id="manualGrp" style="display:none">
+        <div class="md-settings__label">选择基准时区</div>
+        <select class="md-sel" id="manualSel"></select>
+      </div>
+      <div class="md-settings__group" id="autoGrp" style="margin-top:-8px">
+        <div style="font-size:12px;color:var(--md-on-surface-var)" id="detectedInfo">检测到系统时区: Asia/Shanghai</div>
+      </div>
+    </div>
+    <div class="md-dialog__actions">
+      <button class="md-btn-text" id="settingsCancelBtn">取消</button>
+      <button class="md-btn-filled" id="saveSettings">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SNACKBAR ═══ -->
+<div class="md-snack" id="snack"></div>
+<footer>世界时间 · 为跨境电商与外贸人打造</footer>
+
+<script>
+/* ══════════════════════════════════════════════════
+   CITY DATABASE
+   ══════════════════════════════════════════════════ */
+const ALL_CITIES = [
+  {id:'cn',country:'中国',city:'Beijing',cityZh:'北京',continent:'亚洲',tz:'Asia/Shanghai'},
+  {id:'cn-cd',country:'中国',city:'Chengdu',cityZh:'成都',continent:'亚洲',tz:'Asia/Shanghai'},
+  {id:'cn-hk',country:'中国香港',city:'Hong Kong',cityZh:'香港',continent:'亚洲',tz:'Asia/Hong_Kong'},
+  {id:'cn-tw',country:'中国台湾',city:'Taipei',cityZh:'台北',continent:'亚洲',tz:'Asia/Taipei'},
+  {id:'jp',country:'日本',city:'Tokyo',cityZh:'东京',continent:'亚洲',tz:'Asia/Tokyo'},
+  {id:'kr',country:'韩国',city:'Seoul',cityZh:'首尔',continent:'亚洲',tz:'Asia/Seoul'},
+  {id:'th',country:'泰国',city:'Bangkok',cityZh:'曼谷',continent:'亚洲',tz:'Asia/Bangkok'},
+  {id:'vn',country:'越南',city:'Hanoi',cityZh:'河内',continent:'亚洲',tz:'Asia/Ho_Chi_Minh'},
+  {id:'sg',country:'新加坡',city:'Singapore',cityZh:'新加坡',continent:'亚洲',tz:'Asia/Singapore'},
+  {id:'my',country:'马来西亚',city:'Kuala Lumpur',cityZh:'吉隆坡',continent:'亚洲',tz:'Asia/Kuala_Lumpur'},
+  {id:'id',country:'印度尼西亚',city:'Jakarta',cityZh:'雅加达',continent:'亚洲',tz:'Asia/Jakarta'},
+  {id:'ph',country:'菲律宾',city:'Manila',cityZh:'马尼拉',continent:'亚洲',tz:'Asia/Manila'},
+  {id:'in',country:'印度',city:'New Delhi',cityZh:'新德里',continent:'亚洲',tz:'Asia/Kolkata'},
+  {id:'pk',country:'巴基斯坦',city:'Karachi',cityZh:'卡拉奇',continent:'亚洲',tz:'Asia/Karachi'},
+  {id:'bd',country:'孟加拉',city:'Dhaka',cityZh:'达卡',continent:'亚洲',tz:'Asia/Dhaka'},
+  {id:'ae',country:'阿联酋',city:'Dubai',cityZh:'迪拜',continent:'亚洲',tz:'Asia/Dubai'},
+  {id:'sa',country:'沙特阿拉伯',city:'Riyadh',cityZh:'利雅得',continent:'亚洲',tz:'Asia/Riyadh'},
+  {id:'il',country:'以色列',city:'Tel Aviv',cityZh:'特拉维夫',continent:'亚洲',tz:'Asia/Jerusalem'},
+  {id:'tr',country:'土耳其',city:'Istanbul',cityZh:'伊斯坦布尔',continent:'亚洲',tz:'Asia/Istanbul'},
+  {id:'us-ny',country:'美国(东部)',city:'New York',cityZh:'纽约',continent:'北美洲',tz:'America/New_York'},
+  {id:'us-ch',country:'美国(中部)',city:'Chicago',cityZh:'芝加哥',continent:'北美洲',tz:'America/Chicago'},
+  {id:'us-dn',country:'美国(山地)',city:'Denver',cityZh:'丹佛',continent:'北美洲',tz:'America/Denver'},
+  {id:'us-la',country:'美国(西部)',city:'Los Angeles',cityZh:'洛杉矶',continent:'北美洲',tz:'America/Los_Angeles'},
+  {id:'ca',country:'加拿大',city:'Toronto',cityZh:'多伦多',continent:'北美洲',tz:'America/Toronto'},
+  {id:'mx',country:'墨西哥',city:'Mexico City',cityZh:'墨西哥城',continent:'北美洲',tz:'America/Mexico_City'},
+  {id:'br',country:'巴西',city:'Sao Paulo',cityZh:'圣保罗',continent:'南美洲',tz:'America/Sao_Paulo'},
+  {id:'ar',country:'阿根廷',city:'Buenos Aires',cityZh:'布宜诺斯艾利斯',continent:'南美洲',tz:'America/Argentina/Buenos_Aires'},
+  {id:'cl',country:'智利',city:'Santiago',cityZh:'圣地亚哥',continent:'南美洲',tz:'America/Santiago'},
+  {id:'co',country:'哥伦比亚',city:'Bogota',cityZh:'波哥大',continent:'南美洲',tz:'America/Bogota'},
+  {id:'pe',country:'秘鲁',city:'Lima',cityZh:'利马',continent:'南美洲',tz:'America/Lima'},
+  {id:'gb',country:'英国',city:'London',cityZh:'伦敦',continent:'欧洲',tz:'Europe/London'},
+  {id:'de',country:'德国',city:'Berlin',cityZh:'柏林',continent:'欧洲',tz:'Europe/Berlin'},
+  {id:'fr',country:'法国',city:'Paris',cityZh:'巴黎',continent:'欧洲',tz:'Europe/Paris'},
+  {id:'it',country:'意大利',city:'Rome',cityZh:'罗马',continent:'欧洲',tz:'Europe/Rome'},
+  {id:'es',country:'西班牙',city:'Madrid',cityZh:'马德里',continent:'欧洲',tz:'Europe/Madrid'},
+  {id:'nl',country:'荷兰',city:'Amsterdam',cityZh:'阿姆斯特丹',continent:'欧洲',tz:'Europe/Amsterdam'},
+  {id:'ru',country:'俄罗斯',city:'Moscow',cityZh:'莫斯科',continent:'欧洲',tz:'Europe/Moscow'},
+  {id:'pl',country:'波兰',city:'Warsaw',cityZh:'华沙',continent:'欧洲',tz:'Europe/Warsaw'},
+  {id:'se',country:'瑞典',city:'Stockholm',cityZh:'斯德哥尔摩',continent:'欧洲',tz:'Europe/Stockholm'},
+  {id:'ua',country:'乌克兰',city:'Kyiv',cityZh:'基辅',continent:'欧洲',tz:'Europe/Kyiv'},
+  {id:'au',country:'澳大利亚',city:'Sydney',cityZh:'悉尼',continent:'大洋洲',tz:'Australia/Sydney'},
+  {id:'nz',country:'新西兰',city:'Auckland',cityZh:'奥克兰',continent:'大洋洲',tz:'Pacific/Auckland'},
+  {id:'za',country:'南非',city:'Johannesburg',cityZh:'约翰内斯堡',continent:'非洲',tz:'Africa/Johannesburg'},
+  {id:'ng',country:'尼日利亚',city:'Lagos',cityZh:'拉各斯',continent:'非洲',tz:'Africa/Lagos'},
+  {id:'eg',country:'埃及',city:'Cairo',cityZh:'开罗',continent:'非洲',tz:'Africa/Cairo'},
+  {id:'ke',country:'肯尼亚',city:'Nairobi',cityZh:'内罗毕',continent:'非洲',tz:'Africa/Nairobi'},
+];
+const DEFAULT_IDS = ['cn','us-ny','us-la','gb','jp','de'];
+const CONT_ORDER = ['亚洲','欧洲','北美洲','南美洲','非洲','大洋洲'];
+
+/* ══════════════════════════════════════════════════
+   MARKETING EVENTS DATABASE
+   格式: {platform, region, name, start:'YYYY-MM-DD', end:'YYYY-MM-DD', tz:'America/New_York'}
+   ══════════════════════════════════════════════════ */
+const MKT_EVENTS = [
+  // ─── Amazon ─────────────────────────────────────
+  {p:'amazon',r:'美国',name:"Prime Day",start:'2026-07-08',end:'2026-07-09',tz:'America/New_York'},
+  {p:'amazon',r:'全球',name:"Prime Big Deal Days(秋季大促)",start:'2026-10-08',end:'2026-10-09',tz:'America/New_York'},
+  {p:'amazon',r:'全球',name:"黑色星期五 Black Friday",start:'2026-11-27',end:'2026-11-27',tz:'America/New_York'},
+  {p:'amazon',r:'全球',name:"网络星期一 Cyber Monday",start:'2026-11-30',end:'2026-11-30',tz:'America/New_York'},
+  {p:'amazon',r:'全球',name:"年终大促 Holiday Sale",start:'2026-12-12',end:'2026-12-24',tz:'America/New_York'},
+  {p:'amazon',r:'德国站',name:"Prime Day DE",start:'2026-07-08',end:'2026-07-09',tz:'Europe/Berlin'},
+  {p:'amazon',r:'日本站',name:"Prime Day JP",start:'2026-07-08',end:'2026-07-09',tz:'Asia/Tokyo'},
+  // ─── TikTok Shop ────────────────────────────────
+  {p:'tiktok',r:'美国',name:"TikTok Shop 7.7大促",start:'2026-07-07',end:'2026-07-07',tz:'America/New_York'},
+  {p:'tiktok',r:'美国',name:"TikTok Shop 8.8大促",start:'2026-08-08',end:'2026-08-08',tz:'America/New_York'},
+  {p:'tiktok',r:'美国',name:"TikTok Shop 9.9大促",start:'2026-09-09',end:'2026-09-09',tz:'America/New_York'},
+  {p:'tiktok',r:'美国',name:"TikTok Shop 双11",start:'2026-11-11',end:'2026-11-11',tz:'America/New_York'},
+  {p:'tiktok',r:'美国',name:"TikTok Shop 黑五",start:'2026-11-27',end:'2026-11-30',tz:'America/New_York'},
+  {p:'tiktok',r:'英国',name:"TikTok Shop UK 黑五",start:'2026-11-27',end:'2026-11-30',tz:'Europe/London'},
+  {p:'tiktok',r:'东南亚',name:"TikTok Shop 9.9东南亚",start:'2026-09-09',end:'2026-09-09',tz:'Asia/Singapore'},
+  {p:'tiktok',r:'东南亚',name:"TikTok Shop 12.12",start:'2026-12-12',end:'2026-12-12',tz:'Asia/Singapore'},
+  // ─── eBay ────────────────────────────────────────
+  {p:'ebay',r:'美国',name:"eBay 夏季大促",start:'2026-06-20',end:'2026-06-23',tz:'America/New_York'},
+  {p:'ebay',r:'全球',name:"eBay 黑五大促",start:'2026-11-27',end:'2026-11-30',tz:'America/New_York'},
+  {p:'ebay',r:'全球',name:"eBay Cyber Monday",start:'2026-11-30',end:'2026-11-30',tz:'America/New_York'},
+  {p:'ebay',r:'德国',name:"eBay DE 圣诞季",start:'2026-12-01',end:'2026-12-24',tz:'Europe/Berlin'},
+  // ─── Temu ────────────────────────────────────────
+  {p:'temu',r:'全球',name:"Temu 周年庆大促",start:'2026-09-01',end:'2026-09-03',tz:'America/New_York'},
+  {p:'temu',r:'美国',name:"Temu 黑五超级大促",start:'2026-11-27',end:'2026-11-30',tz:'America/New_York'},
+  {p:'temu',r:'全球',name:"Temu 双12",start:'2026-12-12',end:'2026-12-12',tz:'America/New_York'},
+  // ─── Walmart ─────────────────────────────────────
+  {p:'walmart',r:'美国',name:"Walmart Deals 夏季",start:'2026-07-08',end:'2026-07-11',tz:'America/New_York'},
+  {p:'walmart',r:'美国',name:"Walmart 黑五",start:'2026-11-27',end:'2026-11-28',tz:'America/New_York'},
+  {p:'walmart',r:'美国',name:"Walmart Cyber Week",start:'2026-11-30',end:'2026-12-04',tz:'America/New_York'},
+  // ─── Shopee ──────────────────────────────────────
+  {p:'shopee',r:'东南亚',name:"Shopee 7.7百万大促",start:'2026-07-07',end:'2026-07-07',tz:'Asia/Singapore'},
+  {p:'shopee',r:'东南亚',name:"Shopee 8.8品牌节",start:'2026-08-08',end:'2026-08-08',tz:'Asia/Singapore'},
+  {p:'shopee',r:'东南亚',name:"Shopee 9.9超级购物节",start:'2026-09-09',end:'2026-09-09',tz:'Asia/Singapore'},
+  {p:'shopee',r:'东南亚',name:"Shopee 10.10品牌节",start:'2026-10-10',end:'2026-10-10',tz:'Asia/Singapore'},
+  {p:'shopee',r:'东南亚',name:"Shopee 11.11购物节",start:'2026-11-11',end:'2026-11-11',tz:'Asia/Singapore'},
+  {p:'shopee',r:'东南亚',name:"Shopee 12.12生日特卖",start:'2026-12-12',end:'2026-12-12',tz:'Asia/Singapore'},
+  // ─── Lazada ──────────────────────────────────────
+  {p:'lazada',r:'东南亚',name:"Lazada 生日节",start:'2026-03-27',end:'2026-03-28',tz:'Asia/Singapore'},
+  {p:'lazada',r:'东南亚',name:"Lazada 6.6年中大促",start:'2026-06-06',end:'2026-06-06',tz:'Asia/Singapore'},
+  {p:'lazada',r:'东南亚',name:"Lazada 9.9购物节",start:'2026-09-09',end:'2026-09-09',tz:'Asia/Singapore'},
+  {p:'lazada',r:'东南亚',name:"Lazada 双11",start:'2026-11-11',end:'2026-11-11',tz:'Asia/Singapore'},
+  {p:'lazada',r:'东南亚',name:"Lazada 12.12大促",start:'2026-12-12',end:'2026-12-12',tz:'Asia/Singapore'},
+  // ─── Mercado Libre ───────────────────────────────
+  {p:'mercado',r:'拉丁美洲',name:"Hot Sale 热销节",start:'2026-05-18',end:'2026-05-27',tz:'America/Argentina/Buenos_Aires'},
+  {p:'mercado',r:'拉丁美洲',name:"Cyber Monday LATAM",start:'2026-11-30',end:'2026-12-02',tz:'America/Argentina/Buenos_Aires'},
+  {p:'mercado',r:'拉丁美洲',name:"Navidad 圣诞大促",start:'2026-12-10',end:'2026-12-24',tz:'America/Argentina/Buenos_Aires'},
+];
+
+const PLATFORM_META = {
+  amazon:  {label:'Amazon',     cls:'plat-amazon',  abbr:'A'},
+  tiktok:  {label:'TikTok Shop',cls:'plat-tiktok',  abbr:'T'},
+  ebay:    {label:'eBay',       cls:'plat-ebay',    abbr:'E'},
+  temu:    {label:'Temu',       cls:'plat-temu',    abbr:'T'},
+  walmart: {label:'Walmart',    cls:'plat-walmart', abbr:'W'},
+  shopee:  {label:'Shopee',     cls:'plat-shopee',  abbr:'S'},
+  lazada:  {label:'Lazada',     cls:'plat-lazada',  abbr:'L'},
+  mercado: {label:'Mercado Libre',cls:'plat-mercado',abbr:'M'},
+};
+
+/* ══════════════════════════════════════════════════
+   CHINA NATIONAL HOLIDAYS (2025-2026)
+   ══════════════════════════════════════════════════ */
+const CN_HOLIDAYS = [
+  {name:'元旦',start:'2026-01-01',end:'2026-01-01'},
+  {name:'春节',start:'2026-01-28',end:'2026-02-04'},
+  {name:'清明节',start:'2026-04-05',end:'2026-04-07'},
+  {name:'劳动节',start:'2026-05-01',end:'2026-05-05'},
+  {name:'端午节',start:'2026-06-19',end:'2026-06-21'},
+  {name:'中秋节',start:'2026-09-25',end:'2026-09-27'},
+  {name:'国庆节',start:'2026-10-01',end:'2026-10-07'},
+  {name:'元旦',start:'2025-01-01',end:'2025-01-01'},
+  {name:'春节',start:'2025-01-28',end:'2025-02-04'},
+  {name:'清明节',start:'2025-04-04',end:'2025-04-06'},
+  {name:'劳动节',start:'2025-05-01',end:'2025-05-05'},
+  {name:'端午节',start:'2025-05-31',end:'2025-06-02'},
+  {name:'中秋/国庆',start:'2025-10-01',end:'2025-10-08'},
+];
+
+/* ══════════════════════════════════════════════════
+   LUNAR CALENDAR DATA (simplified)
+   ══════════════════════════════════════════════════ */
+const LUNAR_MONTHS = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'];
+const LUNAR_DAYS = ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+const TIANGAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const DIZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const SHENGXIAO = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+
+// Simplified lunar conversion
+function getLunar(date) {
+  const LUNAR_NEW_YEARS = {
+    2020:'2020-01-25',2021:'2021-02-12',2022:'2022-02-01',
+    2023:'2023-01-22',2024:'2024-02-10',2025:'2025-01-29',
+    2026:'2026-02-17',2027:'2027-02-06',2028:'2028-01-26',
+  };
+  const y = date.getFullYear();
+  const m = date.getMonth();
+  const d = date.getDate();
+  const lnyStr = LUNAR_NEW_YEARS[y] || LUNAR_NEW_YEARS[y-1];
+  if (!lnyStr) return {month:'',day:'',year:'',ganzhi:''};
+
+  // Build consistent local-midnight dates to avoid timezone drift
+  const lny = new Date(lnyStr + 'T00:00:00');
+  const today = new Date(y, m, d);
+  const diff = Math.floor((today - lny) / 86400000);
+
+  let lunarYear = parseInt(lnyStr.slice(0,4));
+  let lunarDay = diff;
+
+  if (diff < 0) {
+    const prevLnyStr = LUNAR_NEW_YEARS[y-1];
+    if (!prevLnyStr) return {month:'',day:'',year:'',ganzhi:''};
+    const prevLny = new Date(prevLnyStr + 'T00:00:00');
+    lunarYear = y - 1;
+    lunarDay = Math.floor((today - prevLny) / 86400000);
+  }
+
+  // Walk through lunar months with alternating 30/29 days (simplified)
+  const monthLens = [30,29,30,29,30,29,30,29,30,29,30,29,30];
+  let mIdx = 0;
+  let dIdx = lunarDay;
+  while (mIdx < 12 && dIdx >= monthLens[mIdx]) {
+    dIdx -= monthLens[mIdx];
+    mIdx++;
+  }
+  if (mIdx > 11) { mIdx = 11; dIdx = Math.min(dIdx, 29); }
+
+  const ganzhiYear = lunarYear - 4;
+  const gan = TIANGAN[((ganzhiYear % 10) + 10) % 10];
+  const zhi = DIZHI[((ganzhiYear % 12) + 12) % 12];
+  const sheng = SHENGXIAO[((ganzhiYear % 12) + 12) % 12];
+
+  return {
+    month: LUNAR_MONTHS[mIdx] || '正月',
+    day: LUNAR_DAYS[dIdx] || '初一',
+    year: `${gan}${zhi}年 ${sheng}年`,
+    ganzhi: `${gan}${zhi}${sheng}`
+  };
+}
+
+// Yi-Ji by day of week + date (simplified rotating system)
+const YI_LIST = [
+  ['祭祀','祈福','嫁娶','开业','出行'],
+  ['订婚','纳采','动土','开工','安床'],
+  ['开光','出行','签约','求财','会友'],
+  ['嫁娶','祭祀','安葬','解除','立碑'],
+  ['开业','动土','安门','纳财','购物'],
+  ['出行','订婚','求嗣','裁衣','会亲'],
+  ['祈福','开光','安床','修造','入宅'],
+];
+const JI_LIST = [
+  ['动土','安葬','诉讼','开渠','祈雨'],
+  ['出行','移徙','破土','安葬','词讼'],
+  ['开业','动土','祈雨','安葬','成服'],
+  ['开业','嫁娶','出行','动土','祈福'],
+  ['嫁娶','安葬','祭祀','纳采','求嗣'],
+  ['动土','安葬','破土','开渠','词讼'],
+  ['嫁娶','移徙','安葬','开渠','破土'],
+];
+
+function getYiJi(date) {
+  const dow = date.getDay();
+  const seed = (date.getDate() + date.getMonth()) % 7;
+  const yi = YI_LIST[(dow + seed) % 7].slice(0,3).join(' ');
+  const ji = JI_LIST[(dow + seed + 3) % 7].slice(0,3).join(' ');
+  return {yi, ji};
+}
+
+/* ══════════════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════════════ */
+let selectedIds = JSON.parse(localStorage.getItem('wc_sel')||'null') || [...DEFAULT_IDS];
+let baseCityId = localStorage.getItem('wc_base') || null;
+let tzMode = localStorage.getItem('wc_tzmode') || 'auto';
+let manualTz = localStorage.getItem('wc_mantz') || 'cn';
+let conversionState = null;
+let promoTimeout = null;
+
+/* ══════════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const getCity = id => ALL_CITIES.find(c => c.id === id);
+let snackTimer;
+function toast(msg) {
+  clearTimeout(snackTimer);
+  $('snack').textContent = msg;
+  $('snack').classList.add('show');
+  snackTimer = setTimeout(() => $('snack').classList.remove('show'), 2500);
+}
+function save() {
+  localStorage.setItem('wc_sel', JSON.stringify(selectedIds));
+  localStorage.setItem('wc_base', baseCityId || '');
+  localStorage.setItem('wc_tzmode', tzMode);
+  localStorage.setItem('wc_mantz', manualTz);
+}
+function parseDate(s){ return new Date(s+'T00:00:00'); }
+function fmtDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+/* ══════════════════════════════════════════════════
+   TIMEZONE UTILITIES
+   ══════════════════════════════════════════════════ */
+function getOffsetMin(tz, date) {
+  const u = date.toLocaleString('en-US',{timeZone:'UTC'});
+  const t = date.toLocaleString('en-US',{timeZone:tz});
+  return (new Date(t) - new Date(u)) / 60000;
+}
+function fmtUtc(off) {
+  const h = Math.abs(off/60), m = Math.abs(off%60);
+  const s = off >= 0 ? '+' : '-';
+  return m === 0 ? `UTC${s}${h}` : `UTC${s}${h}:${String(m).padStart(2,'0')}`;
+}
+function getTimeInfo(tz, date) {
+  const o = {timeZone:tz, hour12:false};
+  const h = parseInt(date.toLocaleString('en-US',{...o,hour:'2-digit'}));
+  const m = parseInt(date.toLocaleString('en-US',{...o,minute:'2-digit'}));
+  const s = parseInt(date.toLocaleString('en-US',{...o,second:'2-digit'}));
+  const year = date.toLocaleString('zh-CN',{...o,year:'numeric'});
+  const month = date.toLocaleString('zh-CN',{...o,month:'long'});
+  const day = date.toLocaleString('zh-CN',{...o,day:'numeric'});
+  const weekday = date.toLocaleString('zh-CN',{...o,weekday:'short'});
+  const dateObj = new Date(date.toLocaleString('en-US',{...o,year:'numeric',month:'2-digit',day:'2-digit'}));
+  return {h,m,s,year,month,day,weekday,dateObj};
+}
+function isDay(h) { return h >= 6 && h < 19; }
+function fmtDiff(min) {
+  const a = Math.abs(min), h = Math.floor(a/60), m = a%60;
+  const sign = min > 0 ? '快' : '慢';
+  if (h===0) return m>0 ? `${sign} ${m} 分钟` : '同时区';
+  if (m===0) return `${sign} ${h} 小时`;
+  return `${sign} ${h}h${m}m`;
+}
+const SUN = `<span class="material-symbols-rounded" style="font-size:16px;color:#f59e0b;flex-shrink:0" fill>light_mode</span>`;
+const MOON = `<span class="material-symbols-rounded" style="font-size:16px;color:#6366f1;flex-shrink:0" fill>dark_mode</span>`;
+
+/* ══════════════════════════════════════════════════
+   HOLIDAY / WEEKEND HELPERS
+   ══════════════════════════════════════════════════ */
+function getCnHolidayIn7Days(nowDate) {
+  // Check if there's a holiday in the next 7 days
+  const results = [];
+  const today = new Date(nowDate); today.setHours(0,0,0,0);
+  const limit = new Date(today); limit.setDate(today.getDate()+7);
+
+  CN_HOLIDAYS.forEach(h => {
+    const s = parseDate(h.start);
+    const e = parseDate(h.end);
+    // Holiday overlaps with [today, today+7]
+    if (s <= limit && e >= today) {
+      // Only show if holiday hasn't ended
+      if (e >= today) {
+        const days = Math.round((e - s) / 86400000) + 1;
+        results.push(`${h.name}放假${days}天 (${h.start.slice(5)} ~ ${h.end.slice(5)})`);
+      }
+    }
+  });
+  return results;
+}
+
+function getWeekendLabel(weekday) {
+  // weekday is zh-CN short: 周六, 周日 etc.
+  if (weekday === '周六') return '🐴 牛马的休息日（周六）';
+  if (weekday === '周日') return '🐴 牛马的休息日（周日）';
+  return null;
+}
+
+/* ══════════════════════════════════════════════════
+   BASE TIMEZONE
+   ══════════════════════════════════════════════════ */
+function detectBase() {
+  const sys = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const m = ALL_CITIES.find(c => c.tz === sys);
+  if (m) return m.id;
+  if (sys.startsWith('Asia/Shanghai')||sys.startsWith('Asia/Chongqing')) return 'cn';
+  if (sys.startsWith('Asia/Hong_Kong')) return 'cn-hk';
+  if (sys.startsWith('Asia/Tokyo')) return 'jp';
+  if (sys.startsWith('Asia/Seoul')) return 'kr';
+  if (sys.startsWith('America/New_York')||sys.startsWith('America/Detroit')) return 'us-ny';
+  if (sys.startsWith('America/Los_Angeles')) return 'us-la';
+  if (sys.startsWith('America/Chicago')) return 'us-ch';
+  if (sys.startsWith('Europe/London')) return 'gb';
+  return 'cn';
+}
+function getBaseId() {
+  return tzMode === 'manual' ? manualTz : (baseCityId || detectBase());
+}
+function updateBaseLabel() {
+  const city = getCity(getBaseId());
+  if (!city) return;
+  const off = getOffsetMin(city.tz, new Date());
+  const label = city.cityZh || city.city;
+  $('baseTzLabel').textContent = `基准: ${city.country} (${label}) · ${fmtUtc(off)}`;
+}
+
+/* ══════════════════════════════════════════════════
+   RENDER CLOCK GRID
+   ══════════════════════════════════════════════════ */
+function renderGrid(date) {
+  if (!date) date = new Date();
+  const baseId = getBaseId();
+  const baseCity = getCity(baseId);
+  const baseOff = baseCity ? getOffsetMin(baseCity.tz, date) : 0;
+  const grid = $('clockGrid');
+  grid.innerHTML = '';
+
+  if (!selectedIds.length) {
+    grid.innerHTML = '<div class="md-empty"><span class="material-symbols-rounded">language</span><p>暂无城市，点击右上方添加</p></div>';
+    $('cityCount').textContent = '共 0 个城市';
+    return;
+  }
+  $('cityCount').textContent = `共 ${selectedIds.length} 个城市`;
+
+  selectedIds.forEach((id, idx) => {
+    const city = getCity(id);
+    if (!city) return;
+    const info = getTimeInfo(city.tz, date);
+    const off = getOffsetMin(city.tz, date);
+    const day = isDay(info.h);
+    const isBase = id === baseId;
+    const diff = off - baseOff;
+    const displayCity = city.cityZh || city.city;
+
+    // Holiday hint: only for China cities, always based on real time
+    let holidayHtml = '';
+    if (city.tz === 'Asia/Shanghai') {
+      const hols = getCnHolidayIn7Days(new Date());
+      if (hols.length) {
+        holidayHtml = `<div class="card-holiday">📅 ${hols.slice(0,2).join('；')}</div>`;
+      }
+      const wkLabel = getWeekendLabel(info.weekday);
+      if (wkLabel) {
+        holidayHtml += `<div class="card-weekend">${wkLabel}</div>`;
+      }
+    }
+
+    const card = document.createElement('div');
+    card.className = `md-card ${day ? 'md-card--elevated' : 'md-card--filled'}${isBase ? ' is-base' : ''}`;
+    card.draggable = true;
+    card.dataset.id = id;
+    card.dataset.idx = idx;
+
+    card.innerHTML = `
+      <div class="drag-handle"><span></span><span></span><span></span></div>
+      <div class="card-header">
+        <div>
+          <div class="card-country">${city.country}</div>
+          <div class="card-city">${displayCity} · ${city.continent}</div>
+        </div>
+        <div class="card-right">
+          <span class="card-utc">${fmtUtc(off)}</span>
+          <button class="card-del" data-id="${id}" title="移除">
+            <span class="material-symbols-rounded" style="font-size:16px">close</span>
+          </button>
+        </div>
+      </div>
+      <div class="card-date">
+        <span>${info.year}${info.month}${info.day}日 ${info.weekday}</span>
+        ${isBase
+          ? '<span class="card-offset card-offset--base">基准时区</span>'
+          : `<span class="card-offset">${fmtDiff(diff)}</span>`}
+        ${day ? SUN : MOON}
+      </div>
+      <div class="card-time">${String(info.h).padStart(2,'0')}:${String(info.m).padStart(2,'0')}:${String(info.s).padStart(2,'0')}</div>
+      ${holidayHtml}
+    `;
+    grid.appendChild(card);
+  });
+
+  bindCardEvents();
+  bindDragEvents();
+}
+
+function tick() {
+  if (conversionState) return;
+  renderGrid();
+  updateBaseLabel();
+}
+
+/* ══════════════════════════════════════════════════
+   CARD EVENTS
+   ══════════════════════════════════════════════════ */
+function bindCardEvents() {
+  $('clockGrid').querySelectorAll('.card-del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      selectedIds = selectedIds.filter(x => x !== e.currentTarget.dataset.id);
+      save(); renderGrid();
+      toast('已移除城市');
+    });
+  });
+}
+
+/* ══════════════════════════════════════════════════
+   DRAG & DROP
+   ══════════════════════════════════════════════════ */
+let dragSrc = null;
+function onDragStart(e){dragSrc=this;this.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',this.dataset.id);}
+function onDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';}
+function onDragEnter(e){if(this!==dragSrc)this.style.borderLeft='3px solid var(--md-primary)';}
+function onDragLeave(e){this.style.borderLeft='';}
+function onDrop(e){e.stopPropagation();this.style.borderLeft='';if(dragSrc!==this){const si=selectedIds.indexOf(dragSrc.dataset.id),ti=selectedIds.indexOf(this.dataset.id);if(si>-1&&ti>-1){selectedIds.splice(si,1);selectedIds.splice(ti,0,dragSrc.dataset.id);save();renderGrid();}}}
+function onDragEnd(){this.classList.remove('dragging');$('clockGrid').querySelectorAll('.md-card').forEach(c=>c.style.borderLeft='');}
+function bindDragEvents(){$('clockGrid').querySelectorAll('.md-card').forEach(c=>{c.addEventListener('dragstart',onDragStart);c.addEventListener('dragover',onDragOver);c.addEventListener('dragenter',onDragEnter);c.addEventListener('dragleave',onDragLeave);c.addEventListener('drop',onDrop);c.addEventListener('dragend',onDragEnd);});}
+
+/* ══════════════════════════════════════════════════
+   SORT
+   ══════════════════════════════════════════════════ */
+const sortMenu = $('sortMenu');
+$('btnSort').addEventListener('click', function(){sortMenu.classList.toggle('active');});
+document.addEventListener('click', e => {
+  if(!e.target.closest('#btnSort')&&!e.target.closest('#sortMenu')) sortMenu.classList.remove('active');
+  if(e.target.closest('.md-menu__item')){applySort(e.target.closest('.md-menu__item').dataset.sort);sortMenu.classList.remove('active');}
+});
+function applySort(by){
+  const now=new Date();
+  switch(by){
+    case 'tz-asc':selectedIds.sort((a,b)=>getOffsetMin(getCity(a).tz,now)-getOffsetMin(getCity(b).tz,now));toast('已按时区从早到晚排序');break;
+    case 'tz-desc':selectedIds.sort((a,b)=>getOffsetMin(getCity(b).tz,now)-getOffsetMin(getCity(a).tz,now));toast('已按时区从晚到早排序');break;
+    case 'name':selectedIds.sort((a,b)=>getCity(a).country.localeCompare(getCity(b).country,'zh-CN'));toast('已按国家名称排序');break;
+    case 'continent':selectedIds.sort((a,b)=>{const ci=CONT_ORDER.indexOf(getCity(a).continent)-CONT_ORDER.indexOf(getCity(b).continent);return ci!==0?ci:getOffsetMin(getCity(a).tz,now)-getOffsetMin(getCity(b).tz,now);});toast('已按大洲分组');break;
+  }
+  save();renderGrid();
+}
+
+/* ══════════════════════════════════════════════════
+   ADD CITY DIALOG
+   ══════════════════════════════════════════════════ */
+function openAdd(){$('addOverlay').classList.add('active');$('addSearch').value='';renderAddList('');$('addSearch').focus();}
+function closeAdd(){$('addOverlay').classList.remove('active');}
+$('addFab').addEventListener('click',openAdd);
+$('btnAddToolbar').addEventListener('click',openAdd);
+$('addClose').addEventListener('click',closeAdd);
+$('addOverlay').addEventListener('click',e=>{if(e.target===$('addOverlay'))closeAdd();});
+function renderAddList(q){
+  q=q.trim().toLowerCase();
+  const list=$('addList');
+  let html='';
+  CONT_ORDER.forEach(cont=>{
+    let cities=ALL_CITIES.filter(c=>c.continent===cont);
+    if(q)cities=cities.filter(c=>c.country.toLowerCase().includes(q)||(c.cityZh&&c.cityZh.includes(q))||c.city.toLowerCase().includes(q));
+    if(!cities.length)return;
+    html+=`<div class="md-li--cont">${cont}（${cities.length}）</div>`;
+    cities.forEach(c=>{
+      const added=selectedIds.includes(c.id);
+      const off=getOffsetMin(c.tz,new Date());
+      const dc=c.cityZh?`${c.cityZh} / ${c.city}`:c.city;
+      html+=`<div class="md-li" data-id="${c.id}"><div class="md-li__info"><div class="md-li__name">${c.country}${added?' <span class="added-tag">已添加</span>':''}</div><div class="md-li__detail">${dc} · ${c.continent}</div></div><span class="md-li__badge">${fmtUtc(off)}</span><button class="md-li__add${added?' added':''}" data-id="${c.id}">${added?'已添加':'+ 添加'}</button></div>`;
+    });
+  });
+  if(!html)html='<div style="padding:40px;text-align:center;color:var(--md-on-surface-var)">未找到匹配城市</div>';
+  list.innerHTML=html;
+  list.querySelectorAll('.md-li__add:not(.added)').forEach(btn=>{btn.addEventListener('click',e=>{e.stopPropagation();const id=e.currentTarget.dataset.id;if(!selectedIds.includes(id)){selectedIds.push(id);save();renderGrid();renderAddList($('addSearch').value);toast(`已添加 ${getCity(id).country}`);}});});
+  list.querySelectorAll('.md-li:not(.md-li--cont)').forEach(li=>{li.addEventListener('click',e=>{if(e.target.closest('.md-li__add'))return;const id=li.dataset.id;if(!selectedIds.includes(id)){selectedIds.push(id);save();renderGrid();renderAddList($('addSearch').value);toast(`已添加 ${getCity(id).country}`);}});});
+}
+$('addSearch').addEventListener('input',e=>renderAddList(e.target.value));
+
+/* ══════════════════════════════════════════════════
+   SETTINGS DIALOG
+   ══════════════════════════════════════════════════ */
+$('settingsBtn').addEventListener('click',()=>{
+  $('settingsOverlay').classList.add('active');
+  $('detectedInfo').textContent=`检测到系统时区: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+  $('manualSel').innerHTML=ALL_CITIES.map(c=>{const off=getOffsetMin(c.tz,new Date());const dc=c.cityZh?`${c.cityZh} / ${c.city}`:c.city;return `<option value="${c.id}"${c.id===manualTz?' selected':''}>${c.country} (${dc}) ${fmtUtc(off)}</option>`;}).join('');
+  $('modeAuto').classList.toggle('active',tzMode==='auto');
+  $('modeManual').classList.toggle('active',tzMode==='manual');
+  $('manualGrp').style.display=tzMode==='manual'?'block':'none';
+  $('autoGrp').style.display=tzMode==='auto'?'block':'none';
+});
+function closeSettings(){$('settingsOverlay').classList.remove('active');}
+$('settingsClose').addEventListener('click',closeSettings);
+$('settingsCancelBtn').addEventListener('click',closeSettings);
+$('settingsOverlay').addEventListener('click',e=>{if(e.target===$('settingsOverlay'))closeSettings();});
+$('modeAuto').addEventListener('click',()=>{tzMode='auto';$('modeAuto').classList.add('active');$('modeManual').classList.remove('active');$('manualGrp').style.display='none';$('autoGrp').style.display='block';});
+$('modeManual').addEventListener('click',()=>{tzMode='manual';$('modeManual').classList.add('active');$('modeAuto').classList.remove('active');$('manualGrp').style.display='block';$('autoGrp').style.display='none';});
+$('saveSettings').addEventListener('click',()=>{if(tzMode==='manual')manualTz=$('manualSel').value;save();updateBaseLabel();renderGrid();closeSettings();toast('设置已保存');});
+
+/* ══════════════════════════════════════════════════
+   TIME CONVERSION
+   ══════════════════════════════════════════════════ */
+function findCity(text){
+  let cleaned=text.replace(/\d{4}[-/年]\d{1,2}[-/月]\d{1,2}日?\s*/g,'').replace(/\d{1,2}:\d{2}(:\d{2})?/g,'').replace(/\d{1,2}[点时]\d{0,2}分?/g,'').trim();
+  if(!cleaned)cleaned=text.trim();
+  const q=cleaned.toLowerCase();
+  const matches=ALL_CITIES.filter(c=>c.country.toLowerCase().includes(q)||(c.cityZh&&c.cityZh.includes(q))||c.city.toLowerCase().includes(q)||(c.id.includes(q)&&q.length>=2));
+  if(!matches.length)return null;
+  const exact=matches.find(c=>c.cityZh===q||c.country.toLowerCase()===q||c.city.toLowerCase()===q);
+  if(exact)return exact;
+  const starts=matches.find(c=>(c.cityZh&&c.cityZh.startsWith(q))||c.country.toLowerCase().startsWith(q)||c.city.toLowerCase().startsWith(q));
+  return starts||matches[0];
+}
+function isValidDT(dt){
+  if(dt.month<1||dt.month>12||dt.day<1||dt.day>31||dt.hour<0||dt.hour>23||dt.minute<0||dt.minute>59)return false;
+  if(dt.day>new Date(dt.year,dt.month,0).getDate())return false;
+  if(dt.year<2000||dt.year>2100)return false;
+  return true;
+}
+function extractDT(text){
+  let dt=null,m;
+  m=text.match(/(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if(m)dt={year:+m[1],month:+m[2],day:+m[3],hour:+m[4],minute:+m[5]};
+  if(!dt){m=text.match(/(\d{4})年(\d{1,2})月(\d{1,2})[日号]\s*(\d{1,2})[:\：]?(\d{2})(?::(\d{2}))?/);if(m)dt={year:+m[1],month:+m[2],day:+m[3],hour:+m[4],minute:+m[5]};}
+  if(!dt){m=text.match(/(\d{4})年(\d{1,2})月(\d{1,2})[日号]/);if(m){const n=new Date();dt={year:+m[1],month:+m[2],day:+m[3],hour:n.getHours(),minute:n.getMinutes()};}}
+  if(!dt){m=text.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);if(m){const n=new Date();dt={year:n.getFullYear(),month:n.getMonth()+1,day:n.getDate(),hour:+m[1],minute:+m[2]};}}
+  if(!dt){m=text.match(/(\d{1,2})[点时](\d{1,2})?分?/);if(m){const n=new Date();dt={year:n.getFullYear(),month:n.getMonth()+1,day:n.getDate(),hour:+m[1],minute:m[2]?+m[2]:0};}}
+  return dt&&isValidDT(dt)?dt:null;
+}
+function doConvert(){
+  const text=$('convertInput').value.trim();
+  if(!text){toast('请输入城市和时间');return;}
+  const city=findCity(text);
+  if(!city){toast('未找到匹配城市，请检查输入');return;}
+  const dt=extractDT(text);
+  if(!dt){toast('时间格式无效，请使用如 9点、14:30 或 2026-06-01 09:00');return;}
+  const approx=new Date(Date.UTC(dt.year,dt.month-1,dt.day,dt.hour,dt.minute));
+  const off=getOffsetMin(city.tz,approx);
+  const utcMs=approx.getTime()-off*60000;
+  conversionState={sourceId:city.id,utcMs};
+  const dc=city.cityZh||city.city;
+  $('convertText').innerHTML=`当 <b>${city.country} (${dc})</b> 是 <b>${dt.year}年${dt.month}月${dt.day}日 ${String(dt.hour).padStart(2,'0')}:${String(dt.minute).padStart(2,'0')}</b> 时`;
+  $('convertBanner').classList.add('active');
+  renderGrid(new Date(utcMs));
+  toast('转换成功');
+}
+function exitConvert(){
+  conversionState=null;
+  $('convertBanner').classList.remove('active');
+  $('convertInput').value='';
+  renderGrid();
+}
+$('convertBtn').addEventListener('click',doConvert);
+$('convertInput').addEventListener('keydown',e=>{if(e.key==='Enter')doConvert();});
+$('backBtn').addEventListener('click',exitConvert);
+
+/* ══════════════════════════════════════════════════
+   MARKETING CALENDAR RENDER
+   ══════════════════════════════════════════════════ */
+function getEventStatus(evt) {
+  const now = new Date();
+  const todayStr = fmtDate(now);
+  if (evt.end < todayStr) return 'past';
+  if (evt.start <= todayStr && evt.end >= todayStr) return 'active';
+  // Within 30 days
+  const diffDays = (parseDate(evt.start) - now) / 86400000;
+  if (diffDays <= 30) return 'soon';
+  return 'future';
+}
+
+// Sort events: active first, then soon, then future, then past
+function sortEvents(events) {
+  const order = {active:0, soon:1, future:2, past:3};
+  return [...events].sort((a,b) => {
+    const sa = getEventStatus(a), sb = getEventStatus(b);
+    if (order[sa] !== order[sb]) return order[sa] - order[sb];
+    return a.start.localeCompare(b.start);
+  });
+}
+
+function renderMktCalendar() {
+  const body = $('mktBody');
+  const platforms = ['amazon','tiktok','ebay','temu','walmart','shopee','lazada','mercado'];
+  let html = '';
+
+  platforms.forEach(p => {
+    const meta = PLATFORM_META[p];
+    const events = MKT_EVENTS.filter(e => e.p === p);
+    const sorted = sortEvents(events);
+    // Count active/soon
+    const activeCnt = sorted.filter(e => ['active','soon'].includes(getEventStatus(e))).length;
+
+    html += `<div class="mkt-platform">
+      <div class="mkt-platform__name" data-plat="${p}">
+        <span class="plat-icon ${meta.cls}">${meta.abbr}</span>
+        ${meta.label}
+        ${activeCnt ? `<span style="font-size:10px;background:var(--md-primary-container);color:var(--md-primary);padding:1px 6px;border-radius:99px;margin-left:4px">${activeCnt}</span>` : ''}
+        <span class="material-symbols-rounded chevron">expand_more</span>
+      </div>
+      <div class="mkt-events" id="mkt-events-${p}">`;
+
+    sorted.forEach((evt, i) => {
+      const status = getEventStatus(evt);
+      if (status === 'past') return; // Skip past events to save space
+      const statusLabels = {active:'进行中',soon:'即将开始',future:'未来'};
+      const statusCls = {active:'active-badge',soon:'soon-badge',future:'past-badge'};
+
+      html += `<div class="mkt-event ${status === 'active' ? 'is-active' : status === 'soon' ? 'is-soon' : ''}">
+        <div class="mkt-event__main">
+          <div class="mkt-event__name" title="${evt.name}">${evt.name}</div>
+          <div class="mkt-event__region">${evt.r}</div>
+          <div class="mkt-event__dates">${evt.start === evt.end ? evt.start : evt.start + ' → ' + evt.end}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+          <span class="mkt-event__status ${statusCls[status]||'past-badge'}">${statusLabels[status]||''}</span>
+          <button class="mkt-clock-btn" title="查看该大促开始时间" data-start="${evt.start}" data-tz="${evt.tz}" data-name="${evt.name}">
+            <span class="material-symbols-rounded">schedule</span>
+          </button>
+        </div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  body.innerHTML = html;
+
+  // Collapse/expand platform
+  body.querySelectorAll('.mkt-platform__name').forEach(el => {
+    el.addEventListener('click', () => {
+      const p = el.dataset.plat;
+      const evts = document.getElementById(`mkt-events-${p}`);
+      const collapsed = evts.style.display === 'none';
+      evts.style.display = collapsed ? 'block' : 'none';
+      el.classList.toggle('collapsed', !collapsed);
+    });
+  });
+
+  // Clock sync button
+  body.querySelectorAll('.mkt-clock-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const start = btn.dataset.start;
+      const tz = btn.dataset.tz;
+      const name = btn.dataset.name;
+      syncToPromo(start, tz, name);
+    });
+  });
+}
+
+function syncToPromo(dateStr, tz, name) {
+  // Convert promo start date (midnight local time) to UTC
+  const promoDate = parseDate(dateStr);
+  const off = getOffsetMin(tz, promoDate);
+  const utcMs = promoDate.getTime() - off * 60000;
+
+  conversionState = {sourceId: null, utcMs, isPromo: true};
+  $('convertText').innerHTML = `📢 大促 <b>${name}</b> 开始时间 <b>${dateStr}</b>`;
+  $('convertBanner').classList.add('active');
+  renderGrid(new Date(utcMs));
+  toast(`已切换至 ${name} 开始时间`);
+
+  // Auto revert after 60 seconds
+  clearTimeout(promoTimeout);
+  promoTimeout = setTimeout(() => {
+    exitConvert();
+    toast('已自动切回实时时间');
+  }, 60000);
+}
+
+/* ══════════════════════════════════════════════════
+   CALENDAR PANEL
+   ══════════════════════════════════════════════════ */
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+let selectedCalDate = null; // 日历中选中的日期 'YYYY-MM-DD'
+
+$('calFab').addEventListener('click', () => {
+  $('calPanel').classList.toggle('active');
+});
+
+// Close when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('#calPanel') && !e.target.closest('#calFab')) {
+    $('calPanel').classList.remove('active');
+  }
+});
+// Prevent clicks inside calPanel from closing it (stopPropagation)
+$('calPanel').addEventListener('click', e => {
+  e.stopPropagation();
+});
+
+$('calPrev').addEventListener('click', () => {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  selectedCalDate = null;
+  renderCalendar();
+});
+$('calNext').addEventListener('click', () => {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  selectedCalDate = null;
+  renderCalendar();
+});
+
+function isHoliday(y, m, d) {
+  const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  return CN_HOLIDAYS.some(h => h.start <= ds && ds <= h.end);
+}
+
+function renderCalendar() {
+  const today = new Date();
+  const isCurrentMonth = calYear === today.getFullYear() && calMonth === today.getMonth();
+
+  $('calTitle').textContent = `${calYear}年${calMonth+1}月`;
+
+  // Top info: show selected date if any, else show today (if current month)
+  let displayDate = today;
+  if (selectedCalDate) {
+    const [sy, sm, sd] = selectedCalDate.split('-').map(Number);
+    // Only use selected date if it's in the current viewed month
+    if (sy === calYear && sm - 1 === calMonth) {
+      displayDate = new Date(sy, sm - 1, sd);
+    }
+  }
+
+  const isToday = displayDate.getFullYear() === today.getFullYear() &&
+                  displayDate.getMonth() === today.getMonth() &&
+                  displayDate.getDate() === today.getDate();
+
+  const lunar = getLunar(displayDate);
+  const yiji = getYiJi(displayDate);
+  const dow = displayDate.getDay();
+  const dateLabel = `${displayDate.getFullYear()}年${displayDate.getMonth()+1}月${displayDate.getDate()}日 ${['周日','周一','周二','周三','周四','周五','周六'][dow]}`;
+
+  $('calDateBig').textContent = dateLabel + (isToday ? ' (今天)' : '');
+  $('calLunarInfo').textContent = `${lunar.year} ${lunar.month}${lunar.day}`;
+  $('calYiJi').innerHTML = `<span class="cal-yi">宜 ${yiji.yi}</span><span class="cal-ji">忌 ${yiji.ji}</span>`;
+
+  // Update floating card yi/ji (always show today's)
+  const todayYiJi = getYiJi(today);
+  $('calFabYiJi').innerHTML = `<span class="yi-tag">宜${todayYiJi.yi.split('、')[0]}</span><span class="ji-tag">忌${todayYiJi.ji.split('、')[0]}</span>`;
+
+  // Grid header
+  const weekNames = ['日','一','二','三','四','五','六'];
+  $('calGridHead').innerHTML = weekNames.map(d => `<span>${d}</span>`).join('');
+
+  // Days
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrevMonth = new Date(calYear, calMonth, 0).getDate();
+
+  let html = '';
+  // Prev month tail
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = daysInPrevMonth - i;
+    const pm = calMonth - 1 < 0 ? 11 : calMonth - 1;
+    const py = calMonth - 1 < 0 ? calYear - 1 : calYear;
+    const lunar = getLunar(new Date(py, pm, d));
+    const ds = `${py}-${String(pm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    html += `<div class="cal-day other-month" data-date="${ds}"><span class="cal-day-num">${d}</span><span class="cal-day-lunar">${lunar.day}</span></div>`;
+  }
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateObj = new Date(calYear, calMonth, d);
+    const dow = dateObj.getDay();
+    const isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===d;
+    const isHol = isHoliday(calYear, calMonth, d);
+    const isWknd = dow === 0 || dow === 6;
+    const lunar = getLunar(dateObj);
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isSelected = selectedCalDate === ds;
+    let cls = 'cal-day';
+    if (isSelected) cls += ' selected';
+    else if (isToday) cls += ' today';
+    else if (isWknd) cls += ' weekend';
+    if (isHol) cls += ' holiday';
+    html += `<div class="${cls}" data-date="${ds}"><span class="cal-day-num">${d}</span><span class="cal-day-lunar">${lunar.day}</span></div>`;
+  }
+  // Next month head
+  const remaining = 42 - firstDay - daysInMonth;
+  for (let d = 1; d <= Math.min(remaining, 14); d++) {
+    const nm = calMonth + 1 > 11 ? 0 : calMonth + 1;
+    const ny = calMonth + 1 > 11 ? calYear + 1 : calYear;
+    const lunar = getLunar(new Date(ny, nm, d));
+    const ds = `${ny}-${String(nm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    html += `<div class="cal-day other-month" data-date="${ds}"><span class="cal-day-num">${d}</span><span class="cal-day-lunar">${lunar.day}</span></div>`;
+  }
+
+  $('calGrid').innerHTML = html;
+
+  // Click to select date
+  $('calGrid').querySelectorAll('.cal-day').forEach(el => {
+    el.addEventListener('click', () => {
+      const ds = el.dataset.date;
+      if (!ds) return;
+      selectedCalDate = ds;
+      // Visual selection
+      $('calGrid').querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
+      el.classList.add('selected');
+      // Update top info only (no clock sync)
+      renderCalendar();
+    });
+  });
+}
+
+function syncToCalendarDate(dateStr) {
+  // Legacy: calendar no longer syncs to clock, but keep function for promo clicks
+  const d = parseDate(dateStr);
+  d.setHours(0,0,0,0);
+  const utcMs = d.getTime();
+  conversionState = {sourceId: null, utcMs, isPromo: true};
+  $('convertText').innerHTML = `📅 日历选择 <b>${dateStr}</b> 00:00 <span style="font-size:11px;color:var(--md-on-surface-var)">(60秒后自动切回)</span>`;
+  $('convertBanner').classList.add('active');
+  renderGrid(new Date(utcMs));
+  toast(`已切换至 ${dateStr} 00:00`);
+
+  // Auto revert after 60 seconds
+  clearTimeout(promoTimeout);
+  promoTimeout = setTimeout(() => {
+    exitConvert();
+    toast('已自动切回实时时间');
+  }, 60000);
+}
+
+/* ══════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════ */
+function init() {
+  if (!baseCityId) baseCityId = detectBase();
+  updateBaseLabel();
+  renderGrid();
+  renderMktCalendar();
+  renderCalendar();
+  setInterval(tick, 1000);
+  // Refresh marketing calendar every 5 minutes (for status changes)
+  setInterval(renderMktCalendar, 300000);
+}
+init();
+</script>
+</body>
+</html>

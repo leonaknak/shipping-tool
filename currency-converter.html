@@ -24,9 +24,37 @@
     background: var(--bg);
     color: var(--text);
     padding: 20px;
+    padding-top: 72px;
     min-height: 100vh;
   }
   .container { max-width: 900px; margin: 0 auto; }
+
+  /* ── 工具箱顶部导航 ── */
+  .toolnav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    height: 48px; display: flex; align-items: center;
+    padding: 0 20px; gap: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .toolnav__brand {
+    font-size: 15px; font-weight: 700; color: #fff;
+    margin-right: 12px; white-space: nowrap; display: flex; align-items: center; gap: 6px;
+    text-decoration: none;
+  }
+  .toolnav__brand span { opacity: .7; font-weight: 400; font-size: 12px; }
+  .toolnav__sep { width: 1px; height: 20px; background: rgba(255,255,255,.2); margin: 0 6px; }
+  .toolnav__link {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px;
+    color: rgba(255,255,255,.7); text-decoration: none;
+    font-size: 13px; font-weight: 500;
+    transition: all .18s; white-space: nowrap;
+  }
+  .toolnav__link:hover { background: rgba(255,255,255,.15); color: #fff; }
+  .toolnav__link.active { background: rgba(255,255,255,.22); color: #fff; font-weight: 600; }
+  .toolnav__link .tn-ico { font-size: 15px; }
   header {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 24px;
@@ -277,6 +305,16 @@
 </style>
 </head>
 <body>
+
+<!-- ── 统一工具导航栏 ── -->
+<nav class="toolnav">
+  <a href="https://leonaknak.github.io/shipping-tool/tools.html" class="toolnav__brand">🧰 <span>工具箱</span></a>
+  <div class="toolnav__sep"></div>
+  <a href="https://leonaknak.github.io/shipping-tool/" class="toolnav__link">🚢 <span>头程物流</span></a>
+  <a href="https://leonaknak.github.io/shipping-tool/currency-converter.html" class="toolnav__link active">💱 <span>汇率换算</span></a>
+  <a href="https://leonaknak.github.io/shipping-tool/world-clock.html" class="toolnav__link">🌍 <span>世界时间</span></a>
+</nav>
+
 <div class="container">
   <header>
     <h1>💱 汇率快算</h1>

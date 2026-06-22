@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汇率快算 - 跨境电商人专用</title>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --text2: #6b7280;
+    --border: #e5e7eb;
+    --primary: #4f46e5;
+    --primary-light: #eef2ff;
+    --green: #10b981;
+    --red: #ef4444;
+    --shadow: 0 4px 20px rgba(0,0,0,0.06);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px;
+    min-height: 100vh;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .update-time {
+    font-size: 12px; color: var(--text2);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .update-time .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green); display: inline-block;
+  }
+  .update-time .dot.stale { background: var(--red); }
+
+  /* Base Currency Section */
+  .base-section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .base-label { font-size: 13px; color: var(--text2); font-weight: 500; min-width: 60px; }
+  .base-select-wrap {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--primary-light);
+    padding: 10px 16px; border-radius: 10px;
+    cursor: pointer; transition: background .2s;
+    position: relative;
+  }
+  .base-select-wrap:hover { background: #e0e7ff; }
+  .base-select-wrap .flag { width: 28px; height: 20px; object-fit: cover; border-radius: 2px; }
+  .base-select-wrap .info { display: flex; flex-direction: column; }
+  .base-select-wrap .name { font-size: 14px; font-weight: 600; }
+  .base-select-wrap .code { font-size: 11px; color: var(--text2); }
+  .base-select-wrap .arrow { margin-left: 8px; color: var(--text2); font-size: 12px; }
+
+  .base-input-wrap {
+    flex: 1; min-width: 180px;
+    display: flex; align-items: center;
+    background: #f9fafb; border: 1px solid var(--border);
+    border-radius: 10px; padding: 0 14px;
+    transition: border-color .2s;
+  }
+  .base-input-wrap:focus-within { border-color: var(--primary); }
+  .base-input-wrap .sym { font-size: 18px; color: var(--text2); margin-right: 8px; font-weight: 500; }
+  .base-input-wrap input {
+    flex: 1; border: none; background: transparent;
+    font-size: 26px; font-weight: 700; color: var(--text);
+    padding: 10px 0; outline: none; width: 100%;
+  }
+  .base-input-wrap input::placeholder { color: #c4c4c4; }
+
+  /* Quick action buttons */
+  .toolbar {
+    display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all .2s; white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn-primary:hover { background: #4338ca; color: #fff; }
+  .btn-danger { color: var(--red); border-color: #fecaca; }
+  .btn-danger:hover { background: #fef2f2; }
+
+  /* Currency Grid */
+  .currency-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .currency-grid { grid-template-columns: 1fr; }
+  }
+  .currency-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 8px;
+    transition: transform .15s, box-shadow .15s;
+    position: relative;
+    cursor: grab;
+  }
+  .currency-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.08); }
+  .currency-card.dragging { opacity: 0.6; cursor: grabbing; }
+  .currency-card .flag { width: 32px; height: 22px; object-fit: cover; border-radius: 2px; }
+  .currency-card .info { min-width: 0; display: flex; flex-direction: column; gap: 0; }
+  .currency-card .top-row {
+    display: flex; align-items: center; gap: 5px;
+  }
+  .currency-card .country-name {
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .currency-card .bottom-row {
+    display: flex; align-items: center; gap: 5px;
+  }
+  .currency-card .currency-code {
+    font-size: 12px; font-weight: 700; color: var(--text);
+  }
+  .currency-card .currency-name {
+    font-size: 12px; color: var(--text2);
+  }
+  .currency-card .right-col {
+    flex: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0;
+  }
+  .currency-card .amount-input {
+    width: 100%; text-align: right;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 10px; font-size: 16px; font-weight: 700;
+    color: var(--text); outline: none;
+    transition: border-color .2s;
+  }
+  .currency-card .amount-input:focus { border-color: var(--primary); }
+  .currency-card .rate-line {
+    font-size: 10px; color: #b0b7c3;
+  }
+  .currency-card .rate-line .val { font-weight: 600; }
+  .currency-card .copy-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid var(--border); background: #fff;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--text2); transition: all .2s; flex-shrink: 0;
+  }
+  .currency-card .copy-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .currency-card .copy-btn.copied { color: var(--green); border-color: var(--green); background: #ecfdf5; }
+  .currency-card .remove-btn {
+    position: absolute; top: 6px; right: 6px;
+    width: 20px; height: 20px; border-radius: 50%;
+    border: none; background: transparent; color: #d1d5db;
+    cursor: pointer; font-size: 14px; line-height: 1;
+    display: none; align-items: center; justify-content: center;
+  }
+  .currency-card:hover .remove-btn { display: flex; }
+  .currency-card .remove-btn:hover { color: var(--red); }
+
+  /* Drag sort handle */
+  .drag-handle {
+    position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 24px; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; cursor: grab; opacity: 0.4;
+  }
+  .drag-handle span {
+    width: 10px; height: 2px; background: #cbd5e1; border-radius: 1px;
+  }
+  .sort-mode .currency-card { padding-left: 28px; cursor: grab; }
+  .sort-mode .drag-handle { display: flex; }
+  .sort-mode .amount-input, .sort-mode .copy-btn { pointer-events: none; opacity: 0.5; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card); border-radius: var(--radius);
+    width: 100%; max-width: 480px; max-height: 80vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 18px 20px 14px; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-header h3 { font-size: 16px; }
+  .modal-header .close { background: none; border: none; font-size: 20px; color: var(--text2); cursor: pointer; }
+  .modal-search {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+  .modal-search input {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+    border-radius: 10px; font-size: 14px; outline: none;
+  }
+  .modal-search input:focus { border-color: var(--primary); }
+  .modal-list {
+    flex: 1; overflow-y: auto; padding: 8px 0;
+  }
+  .modal-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px; cursor: pointer; transition: background .15s;
+  }
+  .modal-item:hover { background: var(--bg); }
+  .modal-item .flag { width: 24px; height: 17px; object-fit: cover; border-radius: 2px; }
+  .modal-item .info { flex: 1; }
+  .modal-item .name { font-size: 14px; font-weight: 500; }
+  .modal-item .code { font-size: 12px; color: var(--text2); }
+  .modal-item .add-btn {
+    padding: 5px 12px; border-radius: 6px; border: 1px solid var(--primary);
+    background: var(--primary-light); color: var(--primary);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .modal-item .add-btn.added {
+    border-color: var(--border); background: var(--bg); color: var(--text2);
+    cursor: default;
+  }
+
+  /* Base selector dropdown */
+  .base-dropdown {
+    position: absolute; top: calc(100% + 6px); left: 0;
+    background: var(--card); border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    width: 260px; max-height: 320px; overflow-y: auto;
+    display: none; z-index: 50; padding: 6px 0;
+  }
+  .base-dropdown.active { display: block; }
+  .base-dropdown .dd-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; cursor: pointer;
+  }
+  .base-dropdown .dd-item:hover { background: var(--bg); }
+  .base-dropdown .dd-item .flag { width: 22px; height: 15px; object-fit: cover; border-radius: 2px; }
+  .base-dropdown .dd-item .name { font-size: 14px; }
+  .base-dropdown .dd-item .code { font-size: 12px; color: var(--text2); margin-left: auto; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1a1a2e; color: #fff; padding: 10px 20px; border-radius: 10px;
+    font-size: 13px; opacity: 0; pointer-events: none; transition: all .3s; z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text2);
+  }
+  .empty-state p { margin-bottom: 16px; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .currency-grid { grid-template-columns: 1fr; }
+    .base-section { flex-direction: column; align-items: stretch; }
+    .base-input-wrap input { font-size: 22px; }
+    body { padding: 12px; }
+    h1 { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>💱 汇率快算</h1>
+    <div class="update-time">
+      <span class="dot" id="statusDot"></span>
+      <span id="updateText">更新中...</span>
+    </div>
+  </header>
+
+  <div class="base-section">
+    <div class="base-label">基础货币</div>
+    <div class="base-select-wrap" id="baseSelector">
+      <img class="flag" id="baseFlag" src="https://flagcdn.com/w40/cn.png" alt="CNY">
+      <div class="info">
+        <span class="name" id="baseName">人民币</span>
+        <span class="code" id="baseCode">CNY</span>
+      </div>
+      <span class="arrow">▼</span>
+      <div class="base-dropdown" id="baseDropdown"></div>
+    </div>
+    <div class="base-input-wrap">
+      <span class="sym" id="baseSym">¥</span>
+      <input type="number" id="baseAmount" placeholder="0" value="100">
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" id="btnAdd">＋ 添加货币</button>
+    <button class="btn" id="btnSort">⇅ 排序</button>
+    <button class="btn" id="btnCopyAll">📋 复制全部</button>
+    <button class="btn btn-danger" id="btnReset">↺ 重置自选</button>
+  </div>
+
+  <div class="currency-grid" id="currencyGrid"></div>
+</div>
+
+<!-- Add Currency Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>添加自选货币</h3>
+      <button class="close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-search">
+      <input type="text" id="searchInput" placeholder="搜索货币名称、国家或代码，如 美元 / USD / 美国">
+    </div>
+    <div class="modal-list" id="modalList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== Currency Data =====================
+const CURRENCY_DATA = [
+  { code: 'CNY', name: '人民币', country: '中国', flag: '🇨🇳', symbol: '¥' },
+  { code: 'USD', name: '美元', country: '美国', flag: '🇺🇸', symbol: '$' },
+  { code: 'EUR', name: '欧元', country: '欧盟', flag: '🇪🇺', symbol: '€' },
+  { code: 'JPY', name: '日元', country: '日本', flag: '🇯🇵', symbol: '¥' },
+  { code: 'GBP', name: '英镑', country: '英国', flag: '🇬🇧', symbol: '£' },
+  { code: 'HKD', name: '港币', country: '中国香港', flag: '🇭🇰', symbol: '$' },
+  { code: 'TWD', name: '新台币', country: '中国台湾', flag: '🇹🇼', symbol: 'NT$' },
+  { code: 'KRW', name: '韩元', country: '韩国', flag: '🇰🇷', symbol: '₩' },
+  { code: 'AUD', name: '澳元', country: '澳大利亚', flag: '🇦🇺', symbol: '$' },
+  { code: 'CAD', name: '加元', country: '加拿大', flag: '🇨🇦', symbol: '$' },
+  { code: 'SGD', name: '新加坡元', country: '新加坡', flag: '🇸🇬', symbol: '$' },
+  { code: 'CHF', name: '瑞士法郎', country: '瑞士', flag: '🇨🇭', symbol: 'Fr' },
+  { code: 'MYR', name: '马来西亚林吉特', country: '马来西亚', flag: '🇲🇾', symbol: 'RM' },
+  { code: 'THB', name: '泰铢', country: '泰国', flag: '🇹🇭', symbol: '฿' },
+  { code: 'PHP', name: '菲律宾比索', country: '菲律宾', flag: '🇵🇭', symbol: '₱' },
+  { code: 'IDR', name: '印尼卢比', country: '印度尼西亚', flag: '🇮🇩', symbol: 'Rp' },
+  { code: 'VND', name: '越南盾', country: '越南', flag: '🇻🇳', symbol: '₫' },
+  { code: 'INR', name: '印度卢比', country: '印度', flag: '🇮🇳', symbol: '₹' },
+  { code: 'RUB', name: '俄罗斯卢布', country: '俄罗斯', flag: '🇷🇺', symbol: '₽' },
+  { code: 'MXN', name: '墨西哥比索', country: '墨西哥', flag: '🇲🇽', symbol: '$' },
+  { code: 'BRL', name: '巴西雷亚尔', country: '巴西', flag: '🇧🇷', symbol: 'R$' },
+  { code: 'ZAR', name: '南非兰特', country: '南非', flag: '🇿🇦', symbol: 'R' },
+  { code: 'TRY', name: '土耳其里拉', country: '土耳其', flag: '🇹🇷', symbol: '₺' },
+  { code: 'AED', name: '阿联酋迪拉姆', country: '阿联酋', flag: '🇦🇪', symbol: 'د.إ' },
+  { code: 'SAR', name: '沙特里亚尔', country: '沙特阿拉伯', flag: '🇸🇦', symbol: '﷼' },
+  { code: 'PLN', name: '波兰兹罗提', country: '波兰', flag: '🇵🇱', symbol: 'zł' },
+  { code: 'SEK', name: '瑞典克朗', country: '瑞典', flag: '🇸🇪', symbol: 'kr' },
+  { code: 'NOK', name: '挪威克朗', country: '挪威', flag: '🇳🇴', symbol: 'kr' },
+  { code: 'DKK', name: '丹麦克朗', country: '丹麦', flag: '🇩🇰', symbol: 'kr' },
+  { code: 'NZD', name: '新西兰元', country: '新西兰', flag: '🇳🇿', symbol: '$' },
+  { code: 'CLP', name: '智利比索', country: '智利', flag: '🇨🇱', symbol: '$' },
+  { code: 'COP', name: '哥伦比亚比索', country: '哥伦比亚', flag: '🇨🇴', symbol: '$' },
+  { code: 'ARS', name: '阿根廷比索', country: '阿根廷', flag: '🇦🇷', symbol: '$' },
+  { code: 'EGP', name: '埃及镑', country: '埃及', flag: '🇪🇬', symbol: '£' },
+  { code: 'NGN', name: '尼日利亚奈拉', country: '尼日利亚', flag: '🇳🇬', symbol: '₦' },
+  { code: 'PKR', name: '巴基斯坦卢比', country: '巴基斯坦', flag: '🇵🇰', symbol: '₨' },
+  { code: 'BDT', name: '孟加拉塔卡', country: '孟加拉', flag: '🇧🇩', symbol: '৳' },
+];
+
+const DEFAULT_SELECTED = ['USD','EUR','JPY','GBP','HKD','TWD','KRW','AUD','CAD','SGD','MYR','THB','PHP','IDR','VND','INR','AED'];
+
+// ===================== State =====================
+let baseCurrency = localStorage.getItem('fx_base') || 'CNY';
+let selectedCodes = JSON.parse(localStorage.getItem('fx_selected') || 'null') || [...DEFAULT_SELECTED];
+let rates = {}; // rates relative to each base
+let lastEditedCode = baseCurrency;
+let lastEditedValue = 100;
+
+// ===================== DOM Refs =====================
+const baseSelector = document.getElementById('baseSelector');
+const baseDropdown = document.getElementById('baseDropdown');
+const baseFlag = document.getElementById('baseFlag');
+const baseName = document.getElementById('baseName');
+const baseCode = document.getElementById('baseCode');
+const baseSym = document.getElementById('baseSym');
+const baseAmount = document.getElementById('baseAmount');
+const currencyGrid = document.getElementById('currencyGrid');
+const modalOverlay = document.getElementById('modalOverlay');
+const modalList = document.getElementById('modalList');
+const searchInput = document.getElementById('searchInput');
+const toastEl = document.getElementById('toast');
+const statusDot = document.getElementById('statusDot');
+const updateText = document.getElementById('updateText');
+
+// ===================== Helpers =====================
+// Country code → flagcdn.com image URL
+// EU uses special code 'eu', others use ISO 3166-1 alpha-2 lowercased
+const FLAG_MAP = {
+  'CNY': 'cn', 'USD': 'us', 'EUR': 'eu', 'JPY': 'jp', 'GBP': 'gb',
+  'HKD': 'hk', 'TWD': 'tw', 'KRW': 'kr', 'AUD': 'au', 'CAD': 'ca',
+  'SGD': 'sg', 'CHF': 'ch', 'MYR': 'my', 'THB': 'th', 'PHP': 'ph',
+  'IDR': 'id', 'VND': 'vn', 'INR': 'in', 'RUB': 'ru', 'MXN': 'mx',
+  'BRL': 'br', 'ZAR': 'za', 'TRY': 'tr', 'AED': 'ae', 'SAR': 'sa',
+  'PLN': 'pl', 'SEK': 'se', 'NOK': 'no', 'DKK': 'dk', 'NZD': 'nz',
+  'CLP': 'cl', 'COP': 'co', 'ARS': 'ar', 'EGP': 'eg', 'NGN': 'ng',
+  'PKR': 'pk', 'BDT': 'bd'
+};
+
+function getFlagUrl(code) {
+  const cc = FLAG_MAP[code];
+  if (!cc) return '';
+  // EU flag is from a different path on flagcdn
+  if (cc === 'eu') return 'https://flagcdn.com/w40/eu.png';
+  return 'https://flagcdn.com/w40/' + cc + '.png';
+}
+
+function getCurrency(code) { return CURRENCY_DATA.find(c => c.code === code); }
+
+function formatNum(n, code) {
+  if (n === 0 || n == null) return '0';
+  const abs = Math.abs(n);
+  // High value currencies or very small rates
+  if (abs >= 1000000) return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (abs >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  if (abs >= 1) return n.toLocaleString('en-US', { maximumFractionDigits: 4 });
+  if (abs >= 0.001) return n.toLocaleString('en-US', { maximumFractionDigits: 6 });
+  return n.toLocaleString('en-US', { maximumFractionDigits: 8 });
+}
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(() => toastEl.classList.remove('show'), 2000);
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('已复制: ' + text));
+}
+
+// ===================== Fetch Rates =====================
+async function fetchRates(base) {
+  try {
+    const res = await fetch(`https://open.er-api.com/v6/latest/${base}`);
+    const data = await res.json();
+    if (data.result === 'success') {
+      rates[base] = data.rates;
+      const date = new Date(data.time_last_update_utc);
+      updateText.textContent = `汇率更新: ${date.getMonth()+1}月${date.getDate()}日`;
+      statusDot.classList.remove('stale');
+      return true;
+    }
+  } catch (e) {
+    console.error('Fetch error', e);
+  }
+  statusDot.classList.add('stale');
+  updateText.textContent = '汇率获取失败，使用缓存';
+  return false;
+}
+
+// ===================== Render =====================
+function renderBaseSelector() {
+  const c = getCurrency(baseCurrency);
+  if (!c) return;
+  baseFlag.src = getFlagUrl(c.code);
+  baseName.textContent = c.name;
+  baseCode.textContent = c.code;
+  baseSym.textContent = c.symbol;
+  baseAmount.value = formatNum(lastEditedValue, baseCurrency);
+
+  // Build dropdown
+  baseDropdown.innerHTML = CURRENCY_DATA.map(x => `
+    <div class="dd-item" data-code="${x.code}">
+      <img class="flag" src="${getFlagUrl(x.code)}" alt="${x.code}">
+      <span class="name">${x.name} <span style="color:#9ca3af;font-size:11px">${x.country}</span></span>
+      <span class="code">${x.code}</span>
+    </div>
+  `).join('');
+}
+
+function convert(value, fromCode, toCode) {
+  if (fromCode === toCode) return value;
+  const baseRates = rates[baseCurrency];
+  if (!baseRates) return 0;
+  // Convert from -> baseCurrency -> to
+  // If value is in fromCode, and we have rates relative to baseCurrency:
+  // value_in_base = value / baseRates[fromCode]  (since rate[fromCode] = fromCode per 1 base)
+  // Actually rate[fromCode] means 1 baseCurrency = rate[fromCode] fromCode
+  // So value in base = value / rate[fromCode]
+  // Then value in to = value_in_base * rate[toCode]
+  const fromRate = baseRates[fromCode];
+  const toRate = baseRates[toCode];
+  if (!fromRate || !toRate) return 0;
+  return (value / fromRate) * toRate;
+}
+
+function renderGrid() {
+  currencyGrid.innerHTML = '';
+  const baseRates = rates[baseCurrency];
+  if (!baseRates) {
+    currencyGrid.innerHTML = '<div class="empty-state"><p>正在获取汇率数据...</p></div>';
+    return;
+  }
+  if (selectedCodes.length === 0) {
+    currencyGrid.innerHTML = '<div class="empty-state"><p>暂无自选货币，点击"添加货币"开始</p></div>';
+    return;
+  }
+
+  selectedCodes.forEach(code => {
+    const c = getCurrency(code);
+    if (!c) return;
+    const rate = baseRates[code]; // 1 baseCurrency = ? targetCurrency
+    const rateDisplay = rate ? formatNum(rate, code) : '-';
+
+    // Calculate amount based on lastEditedValue / lastEditedCode
+    let amount = 0;
+    if (lastEditedCode === code) {
+      amount = lastEditedValue;
+    } else {
+      amount = convert(lastEditedValue, lastEditedCode, code);
+    }
+
+    const card = document.createElement('div');
+    card.className = 'currency-card';
+    card.draggable = true;
+    card.dataset.code = c.code;
+    card.innerHTML = `
+      <div class="drag-handle"><span></span><span></span><span></span></div>
+      <img class="flag" src="${getFlagUrl(c.code)}" alt="${c.code}">
+      <div class="info">
+        <div class="top-row">
+          <span class="country-name">${c.country}</span>
+        </div>
+        <div class="bottom-row">
+          <span class="currency-code">${c.code}</span>
+          <span class="currency-name">${c.name}</span>
+        </div>
+      </div>
+      <div class="right-col">
+        <input type="text" class="amount-input" data-code="${c.code}" value="${formatNum(amount, code)}" inputmode="decimal">
+        <div class="rate-line">1 ${baseCurrency} = <span class="val">${rateDisplay}</span> ${c.code}</div>
+      </div>
+      <button class="copy-btn" data-code="${c.code}" title="复制金额">📋</button>
+      <button class="remove-btn" data-code="${c.code}">&times;</button>
+    `;
+    currencyGrid.appendChild(card);
+  });
+
+  bindCardEvents();
+  bindDragEvents();
+}
+
+function bindCardEvents() {
+  currencyGrid.querySelectorAll('.amount-input').forEach(input => {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const code = e.target.dataset.code;
+        lastEditedCode = code;
+        lastEditedValue = parseFloat(e.target.value.replace(/,/g, '')) || 0;
+        e.target.blur();
+      }
+    });
+    input.addEventListener('blur', e => {
+      const code = e.target.dataset.code;
+      lastEditedCode = code;
+      lastEditedValue = parseFloat(e.target.value.replace(/,/g, '')) || 0;
+      updateOtherCards(code);
+    });
+    input.addEventListener('focus', e => {
+      e.target.select();
+    });
+  });
+
+  currencyGrid.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const code = e.currentTarget.dataset.code;
+      const input = currencyGrid.querySelector(`.amount-input[data-code="${code}"]`);
+      const rawVal = input.value.replace(/,/g, '');
+      copyToClipboard(rawVal);
+      btn.classList.add('copied');
+      btn.textContent = '✓';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '📋'; }, 1500);
+    });
+  });
+
+  currencyGrid.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const code = e.currentTarget.dataset.code;
+      selectedCodes = selectedCodes.filter(c => c !== code);
+      saveState();
+      renderGrid();
+    });
+  });
+}
+
+// Update all cards EXCEPT the one being edited — avoids input focus loss
+function updateOtherCards(activeCode) {
+  const baseRates = rates[baseCurrency];
+  if (!baseRates) return;
+  const cards = currencyGrid.querySelectorAll('.currency-card');
+  cards.forEach(card => {
+    const input = card.querySelector('.amount-input');
+    if (!input) return;
+    const code = input.dataset.code;
+    if (code === activeCode) return; // skip the one being edited
+    let amount;
+    if (lastEditedCode === code) {
+      amount = lastEditedValue;
+    } else {
+      amount = convert(lastEditedValue, lastEditedCode, code);
+    }
+    input.value = formatNum(amount, code);
+  });
+  // Also update base amount display
+  const baseAmt = baseCurrency === activeCode ? lastEditedValue : convert(lastEditedValue, lastEditedCode, baseCurrency);
+  baseAmount.value = formatNum(baseAmt, baseCurrency);
+}
+
+// ===================== Base Input (debounce: blur/Enter) =====================
+baseAmount.type = 'text';
+baseAmount.inputMode = 'decimal';
+baseAmount.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    lastEditedCode = baseCurrency;
+    lastEditedValue = parseFloat(baseAmount.value.replace(/,/g, '')) || 0;
+    baseAmount.blur();
+  }
+});
+baseAmount.addEventListener('blur', e => {
+  lastEditedCode = baseCurrency;
+  lastEditedValue = parseFloat(baseAmount.value.replace(/,/g, '')) || 0;
+  baseAmount.value = formatNum(lastEditedValue, baseCurrency);
+  updateOtherCards(baseCurrency);
+});
+baseAmount.addEventListener('focus', e => {
+  e.target.select();
+});
+
+// ===================== Base Selector Dropdown =====================
+baseSelector.addEventListener('click', e => {
+  e.stopPropagation();
+  baseDropdown.classList.toggle('active');
+});
+baseDropdown.addEventListener('click', e => {
+  const item = e.target.closest('.dd-item');
+  if (!item) return;
+  const code = item.dataset.code;
+  if (code !== baseCurrency) {
+    // Convert lastEditedValue from old base to new base
+    if (rates[code] && rates[baseCurrency]) {
+      lastEditedValue = convert(lastEditedValue, lastEditedCode, code);
+      lastEditedCode = code;
+    }
+    baseCurrency = code;
+    saveState();
+    loadRatesAndRender();
+  }
+  baseDropdown.classList.remove('active');
+});
+document.addEventListener('click', () => baseDropdown.classList.remove('active'));
+
+// ===================== Modal =====================
+function openModal() {
+  modalOverlay.classList.add('active');
+  searchInput.value = '';
+  renderModalList('');
+  searchInput.focus();
+}
+function closeModal() { modalOverlay.classList.remove('active'); }
+document.getElementById('btnAdd').addEventListener('click', openModal);
+document.getElementById('modalClose').addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+
+function renderModalList(query) {
+  const q = query.trim().toLowerCase();
+  const list = CURRENCY_DATA.filter(c => {
+    if (selectedCodes.includes(c.code)) return false;
+    if (!q) return true;
+    return c.code.toLowerCase().includes(q) ||
+           c.name.includes(q) ||
+           c.country.includes(q);
+  });
+
+  if (list.length === 0) {
+    modalList.innerHTML = '<div style="padding:30px;text-align:center;color:#9ca3af">未找到匹配的货币</div>';
+    return;
+  }
+
+  modalList.innerHTML = list.map(c => `
+    <div class="modal-item" data-code="${c.code}">
+      <img class="flag" src="${getFlagUrl(c.code)}" alt="${c.code}">
+      <div class="info">
+        <div class="name">${c.name}</div>
+        <div class="code">${c.country} · ${c.code}</div>
+      </div>
+      <button class="add-btn" data-code="${c.code}">+ 自选</button>
+    </div>
+  `).join('');
+
+  modalList.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const code = e.target.dataset.code;
+      if (!selectedCodes.includes(code)) {
+        selectedCodes.push(code);
+        saveState();
+        renderGrid();
+        renderModalList(searchInput.value);
+      }
+    });
+  });
+
+  // Click row to add too
+  modalList.querySelectorAll('.modal-item').forEach(item => {
+    item.addEventListener('click', e => {
+      if (e.target.closest('.add-btn')) return;
+      const code = item.dataset.code;
+      if (!selectedCodes.includes(code)) {
+        selectedCodes.push(code);
+        saveState();
+        renderGrid();
+        renderModalList(searchInput.value);
+      }
+    });
+  });
+}
+
+searchInput.addEventListener('input', e => renderModalList(e.target.value));
+
+// ===================== Sort Mode =====================
+let sortMode = false;
+const btnSort = document.getElementById('btnSort');
+
+function toggleSortMode() {
+  sortMode = !sortMode;
+  if (sortMode) {
+    currencyGrid.classList.add('sort-mode');
+    btnSort.classList.add('btn-primary');
+    btnSort.textContent = '✓ 完成排序';
+    showToast('拖动卡片调整顺序，完成后点击"完成排序"');
+  } else {
+    currencyGrid.classList.remove('sort-mode');
+    btnSort.classList.remove('btn-primary');
+    btnSort.textContent = '⇅ 排序';
+    // Re-bind inputs after sort
+    bindCardEvents();
+  }
+}
+btnSort.addEventListener('click', toggleSortMode);
+
+// Drag & Drop logic
+let dragSrcEl = null;
+
+function handleDragStart(e) {
+  if (!sortMode) { e.preventDefault(); return; }
+  dragSrcEl = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', this.dataset.code);
+}
+
+function handleDragOver(e) {
+  if (!sortMode) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleDragEnter(e) {
+  if (!sortMode) return;
+  if (this !== dragSrcEl) {
+    this.style.borderLeft = '3px solid var(--primary)';
+  }
+}
+
+function handleDragLeave(e) {
+  if (!sortMode) return;
+  this.style.borderLeft = '';
+}
+
+function handleDrop(e) {
+  if (!sortMode) return;
+  e.stopPropagation();
+  this.style.borderLeft = '';
+
+  if (dragSrcEl !== this) {
+    const srcCode = dragSrcEl.dataset.code;
+    const targetCode = this.dataset.code;
+    const srcIdx = selectedCodes.indexOf(srcCode);
+    const targetIdx = selectedCodes.indexOf(targetCode);
+    if (srcIdx > -1 && targetIdx > -1) {
+      selectedCodes.splice(srcIdx, 1);
+      selectedCodes.splice(targetIdx, 0, srcCode);
+      saveState();
+      renderGrid();
+      currencyGrid.classList.add('sort-mode'); // re-apply sort mode
+    }
+  }
+  return false;
+}
+
+function handleDragEnd(e) {
+  this.classList.remove('dragging');
+  currencyGrid.querySelectorAll('.currency-card').forEach(card => {
+    card.style.borderLeft = '';
+  });
+}
+
+function bindDragEvents() {
+  currencyGrid.querySelectorAll('.currency-card').forEach(card => {
+    card.addEventListener('dragstart', handleDragStart);
+    card.addEventListener('dragover', handleDragOver);
+    card.addEventListener('dragenter', handleDragEnter);
+    card.addEventListener('dragleave', handleDragLeave);
+    card.addEventListener('drop', handleDrop);
+    card.addEventListener('dragend', handleDragEnd);
+  });
+}
+
+// ===================== Toolbar =====================
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (confirm('确定重置为默认自选列表吗？')) {
+    selectedCodes = [...DEFAULT_SELECTED];
+    saveState();
+    renderGrid();
+  }
+});
+
+document.getElementById('btnCopyAll').addEventListener('click', () => {
+  let text = `汇率快算 | 基础货币: ${baseCurrency} ${lastEditedValue}\n`;
+  selectedCodes.forEach(code => {
+    const c = getCurrency(code);
+    const val = code === lastEditedCode ? lastEditedValue : convert(lastEditedValue, lastEditedCode, code);
+    text += `${c.flag} ${c.name} ${code}: ${formatNum(val, code)}\n`;
+  });
+  copyToClipboard(text.trim());
+});
+
+// ===================== Persistence =====================
+function saveState() {
+  localStorage.setItem('fx_base', baseCurrency);
+  localStorage.setItem('fx_selected', JSON.stringify(selectedCodes));
+}
+
+// ===================== Init =====================
+async function loadRatesAndRender() {
+  renderBaseSelector();
+  await fetchRates(baseCurrency);
+  // Also fetch USD as a common base for cross-conversion if needed
+  // Actually we only need baseCurrency rates since we convert through it
+  renderGrid();
+}
+
+// If baseAmount is edited, sync lastEdited
+if (baseAmount.value) {
+  lastEditedValue = parseFloat(baseAmount.value) || 100;
+}
+
+loadRatesAndRender();
+</script>
+</body>
+</html>
